@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
         status: 'PENDING',
         method: method || 'Bank Transfer',
         notes: notes || null,
-        createdBy: decoded.userId,
+        createdBy: auth.user.id,
         createdAt: new Date(),
         updatedAt: new Date(),
       },

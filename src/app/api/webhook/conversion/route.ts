@@ -19,9 +19,9 @@ async function verifyApiKey(request: NextRequest): Promise<boolean> {
   if (!apiKey) return false;
 
   // Check against stored API keys
-  const hashedKey = crypto.createHash('sha256').update(apiKey).digest('hex');
+  // const hashedKey = crypto.createHash('sha256').update(apiKey).digest('hex');
   const key = await prisma.apiKey.findFirst({
-    where: { keyHash: hashedKey, isActive: true }
+    where: { key: apiKey, isActive: true }
   }).catch(() => null);
 
   return !!key;
