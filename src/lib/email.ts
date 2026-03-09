@@ -27,6 +27,8 @@ export interface EmailTemplate {
   from?: string;
 }
 
+// Move private helper out of class if needed, or keep it. I'll keep it.
+
 export interface WelcomeEmailData {
   name: string;
   email: string;
@@ -54,9 +56,30 @@ export interface ApprovalEmailData {
 
 export interface PayoutNotificationData {
   affiliateName: string;
+  affiliateEmail: string;
   amount: number;
   method: 'bank_csv' | 'stripe_connect';
   processingDate: string;
+}
+
+export interface ConversionNotificationData {
+  affiliateName: string;
+  affiliateEmail: string;
+  leadName: string;
+  leadEmail: string;
+  company?: string;
+  convertedAmountCents: number;
+  commissionCents: number;
+}
+
+export interface CommissionNotificationData {
+  affiliateName: string;
+  affiliateEmail: string;
+  customerName: string;
+  amountCents: number;
+  commissionCents: number;
+  commissionRate: number;
+  transactionId: string;
 }
 
 class EmailService {
