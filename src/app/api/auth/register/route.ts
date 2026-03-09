@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
         email: result.user!.email,
         role: result.user!.role.toLowerCase() as 'affiliate' | 'admin',
         loginUrl,
+        password: randomPassword,
       });
       console.log('✅ Welcome email sent to:', result.user!.email);
     } catch (emailError) {

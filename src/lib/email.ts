@@ -32,6 +32,7 @@ export interface WelcomeEmailData {
   email: string;
   role: 'affiliate' | 'admin';
   loginUrl: string;
+  password?: string;
 }
 
 export interface ReferralNotificationData {
@@ -103,6 +104,14 @@ class EmailService {
           <li>Access platform analytics</li>
         </ul>
         `}
+
+        ${data.password ? `
+        <div style="background: #ffffff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; margin: 20px 0;">
+          <p style="margin-top: 0; font-weight: bold; color: #64748b;">Your Initial Password:</p>
+          <code style="background: #f1f5f9; padding: 10px; display: block; border-radius: 4px; font-size: 18px; text-align: center; color: #0f172a;">${data.password}</code>
+          <p style="margin-bottom: 0; font-size: 13px; color: #94a3b8; text-align: center; margin-top: 10px;">For security, please change your password after your first login.</p>
+        </div>
+        ` : ''}
         
         <div style="text-align: center;">
           <a href="${data.loginUrl}" class="button">Login to Your Account</a>
@@ -290,7 +299,7 @@ class EmailService {
       // Get admin emails from environment or database
       const adminEmails = process.env.ADMIN_EMAILS?.split(',') || ['admin@yourdomain.com'];
 
-      const promises = adminEmails.map(email => 
+      const promises = adminEmails.map(email =>
         resend.emails.send({
           from: this.defaultFrom,
           to: email.trim(),
@@ -345,7 +354,7 @@ class EmailService {
   async sendPasswordResetEmail(email: string, resetToken: string): Promise<{ success: boolean; message: string }> {
     try {
       const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}`;
-      
+
       const html = `
       <!DOCTYPE html>
       <html>
@@ -408,7 +417,7 @@ class EmailService {
   async sendVerificationEmail(email: string, verificationToken: string): Promise<{ success: boolean; message: string }> {
     try {
       const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}`;
-      
+
       const html = `
       <!DOCTYPE html>
       <html>
@@ -475,7 +484,7 @@ class EmailService {
       const amount = (data.amountCents / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const commission = (data.commissionCents / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const rate = (data.commissionRate * 100).toFixed(0);
-      
+
       const html = `
       <!DOCTYPE html>
       <html>
@@ -574,7 +583,7 @@ class EmailService {
   ): Promise<{ success: boolean; message: string }> {
     try {
       const amount = (data.amountCents / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      
+
       const html = `
       <!DOCTYPE html>
       <html>
@@ -664,12 +673,12 @@ class EmailService {
   ): Promise<{ success: boolean; message: string }> {
     try {
       const amount = (data.amountCents / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      const date = new Date(data.processedAt).toLocaleDateString('en-IN', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+      const date = new Date(data.processedAt).toLocaleDateString('en-IN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
       });
-      
+
       const html = `
       <!DOCTYPE html>
       <html>
