@@ -1,27 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET!
-);
 
 export async function GET(request: NextRequest) {
   try {
-    const token = request.cookies.get('auth-token')?.value;
+    const userId = request.headers.get('x-user-id')!;
 
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No authentication token' },
-        { status: 401 }
-      );
-    }
+    // Get user from database to ensure they still exist and get latest data
 
-    // Verify JWT token
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    
     // Get user from database to ensure they still exist and get latest data
     const user = await prisma.user.findUnique({
-      where: { id: payload.userId as string },
+      where: { id: userId },
       include: {
         affiliate: true
       }

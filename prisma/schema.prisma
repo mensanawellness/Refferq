@@ -111,6 +111,8 @@ model Commission {
   approvedBy   String?          @map("approved_by")
   approvedAt   DateTime?        @map("approved_at")
   paidAt       DateTime?        @map("paid_at")
+  maturesAt    DateTime?        @map("matures_at")
+  clawbackNote String?          @map("clawback_note")
   createdAt    DateTime         @default(now()) @map("created_at")
   updatedAt    DateTime         @updatedAt @map("updated_at")
   affiliate    Affiliate        @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
@@ -214,6 +216,7 @@ model ProgramSettings {
   enablePostbacks           Boolean  @default(false) @map("enable_postbacks")
   autoApprovePayouts        Boolean  @default(false) @map("auto_approve_payouts")
   payoutFrequency           String   @default("MONTHLY") @map("payout_frequency")
+  commissionHoldDays        Int      @default(30) @map("commission_hold_days")
   minPayoutCents            Int      @default(100000) @map("min_payout_cents")
   companyName               String?  @map("company_name")
   createdAt                 DateTime @default(now()) @map("created_at")
@@ -390,6 +393,7 @@ enum CommissionStatus {
   APPROVED
   PAID
   CANCELLED
+  CLAWBACK
 }
 
 enum PayoutMethod {

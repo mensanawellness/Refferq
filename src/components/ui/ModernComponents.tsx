@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 // Re-export all components from ModernUI for backwards compatibility

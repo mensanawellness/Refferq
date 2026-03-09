@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
         attribution_key,
         referral_code,
       });
-      
+
       return NextResponse.json({
         success: true,
         message: 'Conversion logged (no attribution)',
@@ -126,52 +126,38 @@ export async function POST(request: NextRequest) {
     const commissionRules = await db.getCommissionRules();
     let applicableRule = commissionRules.find((rule: any) => rule.isDefault);
 
-    // Check for tier-based rules (commented out - complex conditions in JSON)
-    /*
-    if (amount_cents && amount_cents >= 500000) { // $5000+
-      const enterpriseRule = commissionRules.find((rule: any) => 
-        rule.name.includes('Enterprise') && 
-        (rule.conditions as any)?.min_amount_cents && 
-        amount_cents >= (rule.conditions as any).min_amount_cents
-      );
-      if (enterpriseRule) applicableRule = enterpriseRule;
-    }
-    */
-
-    // Check for volume-based rules (commented out - complex conditions)
-    /*
-    const affiliateStats = await db.getAffiliateStats(affiliate.userId);
-    if (affiliateStats.totalConversions >= 10) {
-      const bonusRule = commissionRules.find((rule: any) => 
-        rule.name.includes('Bonus') && 
-        (rule.conditions as any)?.tier_requirements?.min_monthly_referrals
-      );
-      if (bonusRule) applicableRule = bonusRule;
-    }
-    */
-
     const commissionRate = applicableRule?.value || 15;
     let commissionAmount = 0;
 
     if (applicableRule?.type === 'PERCENTAGE' && amount_cents) {
       commissionAmount = Math.floor((amount_cents * commissionRate) / 100);
     } else if (applicableRule?.type === 'FIXED') {
-      commissionAmount = commissionRate; // Rate is in cents for flat commissions
+      commissionAmount = commissionRate;
     }
 
-    // Create commission record
-    const commission = await db.createCommission({
-      conversionId: conversion.id,
-      affiliateId: affiliate.id,
-      userId: affiliate.userId,
-      amountCents: commissionAmount,
-      rate: commissionRate,
+    // ─── Commission Hold Period ─────────────────────────────────
+    // Fetch hold days from ProgramSettings (default 30)
+    const settings = await prisma.programSettings.findFirst();
+    const holdDays = (settings as any)?.commissionHoldDays ?? 30;
+    const maturesAt = new Date();
+    maturesAt.setDate(maturesAt.getDate() + holdDays);
+
+    // Create commission record with maturesAt (status stays PENDING until maturation)
+    const commission = await prisma.commission.create({
+      data: {
+        conversionId: conversion.id,
+        affiliateId: affiliate.id,
+        userId: affiliate.userId,
+        amountCents: commissionAmount,
+        rate: commissionRate,
+        status: 'PENDING',
+        maturesAt,
+      },
     });
 
-    // Update affiliate balance
-    await db.updateAffiliate(affiliate.id, {
-      balanceCents: affiliate.balanceCents + commissionAmount,
-    });
+    // NOTE: We do NOT update balanceCents here anymore.
+    // Balance is only updated when the commission matures (PENDING → APPROVED).
+    // This protects against refunds during the hold period.
 
     // Log audit event
     await db.createAuditLog({

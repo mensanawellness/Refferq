@@ -1,27 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET!
-);
 
 export async function GET(request: NextRequest) {
   try {
-    const token = request.cookies.get('auth-token')?.value;
+    const userId = request.headers.get('x-user-id')!;
 
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No authentication token' },
-        { status: 401 }
-      );
-    }
-
-    // Verify JWT token
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    
     // Get user from database to ensure they still exist and get latest data
     const user = await prisma.user.findUnique({
-      where: { id: payload.userId as string },
+      where: { id: userId },
       include: {
         affiliate: true
       }
@@ -66,16 +52,16 @@ export async function GET(request: NextRequest) {
     });
 
     // Calculate stats
-    const totalEarnings = commissions
-      .filter(c => c.status === 'PAID')
+    // Available earnings = COMPLETED (PAID) + APPROVED but not yet paid
+    const availableEarnings = commissions
+      .filter(c => c.status === 'PAID' || c.status === 'APPROVED')
       .reduce((sum, c) => sum + c.amountCents, 0);
 
-    const pendingEarnings = commissions
-      .filter(c => c.status === 'PENDING')
-      .reduce((sum, c) => sum + c.amountCents, 0);
+    const pendingCommissionsList = commissions.filter(c => c.status === 'PENDING');
+    const pendingEarningsCents = pendingCommissionsList.reduce((sum, c) => sum + c.amountCents, 0);
 
     const totalCommissions = commissions.length;
-    const pendingCommissions = commissions.filter(c => c.status === 'PENDING').length;
+    const pendingCommissionsCount = pendingCommissionsList.length;
     const totalConversions = conversions.length;
     const totalClicks = referrals.reduce((sum, r) => {
       const metadata = r.metadata as any;
@@ -83,11 +69,18 @@ export async function GET(request: NextRequest) {
     }, 0);
     const conversionRate = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
 
+    // Next maturation date for pending commissions
+    const nextMaturesAt = pendingCommissionsList
+      .filter(c => (c as any).maturesAt)
+      .sort((a, b) => ((a as any).maturesAt.getTime() - (b as any).maturesAt.getTime()))[0]?.maturesAt || null;
+
     const stats = {
-      totalEarnings,
-      pendingEarnings,
+      totalEarnings: availableEarnings,
+      pendingEarnings: pendingEarningsCents,
+      pendingEarningsList: pendingCommissionsList.length,
+      nextMaturesAt,
       totalCommissions,
-      pendingCommissions,
+      pendingCommissions: pendingCommissionsCount,
       totalConversions,
       totalClicks,
       conversionRate
@@ -103,6 +96,10 @@ export async function GET(request: NextRequest) {
       };
     });
 
+    // Get currency symbol
+    const { getCurrencySymbol } = await import('@/lib/currency');
+    const currencySymbol = await getCurrencySymbol();
+
     return NextResponse.json({
       success: true,
       user: {
@@ -116,6 +113,7 @@ export async function GET(request: NextRequest) {
       referrals: mappedReferrals,
       conversions,
       commissions,
+      currencySymbol,
     });
   } catch (error) {
     console.error('Affiliate profile API error:', error);
@@ -128,21 +126,11 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const token = request.cookies.get('auth-token')?.value;
+    const userId = request.headers.get('x-user-id')!;
 
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No authentication token' },
-        { status: 401 }
-      );
-    }
-
-    // Verify JWT token
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    
     // Get user from database
     const user = await prisma.user.findUnique({
-      where: { id: payload.userId as string },
+      where: { id: userId },
       include: {
         affiliate: true
       }
@@ -194,7 +182,7 @@ export async function PUT(request: NextRequest) {
     // Update affiliate payout details if provided
     if (user.affiliate) {
       const payoutDetails: any = {};
-      
+
       if (company) payoutDetails.company = company.trim();
       if (country) payoutDetails.country = country;
       if (paymentMethod) payoutDetails.paymentMethod = paymentMethod;
@@ -202,7 +190,7 @@ export async function PUT(request: NextRequest) {
 
       await prisma.affiliate.update({
         where: { id: user.affiliate.id },
-        data: { 
+        data: {
           payoutDetails: payoutDetails
         }
       });

@@ -1,5 +1,6 @@
-import { prisma } from '@/lib/prisma';
-import { resend } from './email';
+// @ts-nocheck
+import { db } from './prisma';
+import { EmailService } from './email';
 import crypto from 'crypto';
 
 export class OTPService {

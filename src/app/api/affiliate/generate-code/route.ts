@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET!
-);
 
 function generateReferralCode(name: string): string {
   const cleanName = name.replace(/[^a-zA-Z]/g, '').toUpperCase();
@@ -17,21 +13,11 @@ function generateReferralCode(name: string): string {
  */
 export async function POST(request: NextRequest) {
   try {
-    const token = request.cookies.get('auth-token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { success: false, error: 'No authentication token' },
-        { status: 401 }
-      );
-    }
-
-    // Verify JWT token
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const userId = request.headers.get('x-user-id')!;
     
     // Get user from database
     const user = await prisma.user.findUnique({
-      where: { id: payload.userId as string },
+      where: { id: userId },
       include: {
         affiliate: true
       }
