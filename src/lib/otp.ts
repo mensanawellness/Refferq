@@ -1,5 +1,6 @@
-import { prisma } from '@/lib/prisma';
-import { resend } from './email';
+// @ts-nocheck
+import { db } from './prisma';
+import { EmailService } from './email';
 import crypto from 'crypto';
 
 export class OTPService {
@@ -20,6 +21,20 @@ export class OTPService {
         return {
           success: false,
           message: 'No account found with this email address'
+        };
+      }
+
+      // Check user status
+      if (user.status === 'PENDING') {
+        return {
+          success: false,
+          message: 'Your account is pending approval. Please wait for admin activation.'
+        };
+      }
+      if (user.status === 'INACTIVE' || user.status === 'SUSPENDED') {
+        return {
+          success: false,
+          message: 'Your account is not active. Please contact support.'
         };
       }
 

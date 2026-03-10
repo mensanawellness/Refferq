@@ -1,25 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { emailService } from '@/lib/email';
-import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET!
-);
 
 // Only allow in development, or require admin auth in production
 async function requireAdminOrDev(request: NextRequest): Promise<{ error?: string; status?: number }> {
   // Block entirely in production unless authenticated as admin
-  const token = request.cookies.get('auth-token')?.value;
-  if (!token) {
-    if (process.env.NODE_ENV === 'development') return {};
-    return { error: 'Authentication required', status: 401 };
-  }
-
-  try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+  const userId = request.headers.get('x-user-id')!;
     const user = await prisma.user.findUnique({
-      where: { id: payload.userId as string }
+      where: { id: userId }
     });
     if (!user || user.role !== 'ADMIN') {
       return { error: 'Admin access required', status: 403 };

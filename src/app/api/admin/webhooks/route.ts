@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
 import { AVAILABLE_EVENTS, triggerWebhook, type WebhookEventType } from '@/lib/webhooks';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET!
-);
 
 // ─── SSRF Protection: Validate webhook URLs ────────────────────
 const BLOCKED_HOSTNAMES = [
@@ -70,17 +66,10 @@ function validateWebhookUrl(urlString: string): { valid: boolean; error?: string
 
 // Helper: Verify admin auth
 async function verifyAdminAuth(request: NextRequest) {
-  const token = request.cookies.get('auth-token')?.value;
-
-  if (!token) {
-    return { error: 'No authentication token', status: 401 };
-  }
-
-  try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+  const userId = request.headers.get('x-user-id')!;
     
     const user = await prisma.user.findUnique({
-      where: { id: payload.userId as string }
+      where: { id: userId }
     });
 
     if (!user || user.role !== 'ADMIN') {

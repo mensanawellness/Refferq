@@ -46,6 +46,7 @@ export default function PayoutsPage() {
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState(0);
+  const [currencySymbol, setCurrencySymbol] = useState('₹');
 
   useEffect(() => {
     if (!authLoading && user) fetchPayouts();
@@ -61,7 +62,10 @@ export default function PayoutsPage() {
       const payData = await payRes.json();
       const profileData = await profileRes.json();
       if (payData.success) setPayouts(payData.payouts || []);
-      if (profileData.success) setBalance(profileData.affiliate?.balanceCents || 0);
+      if (profileData.success) {
+        setBalance(profileData.affiliate?.balanceCents || 0);
+        setCurrencySymbol(profileData.currencySymbol || '₹');
+      }
     } catch (error) {
       console.error('Failed to fetch payouts:', error);
     } finally {
@@ -73,7 +77,7 @@ export default function PayoutsPage() {
     new Date(date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
 
   const formatCurrency = (cents: number) =>
-    `\u20B9${(cents / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    `${currencySymbol}${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const getStatusBadge = (status: string) => {
     const map: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ElementType }> = {
@@ -145,7 +149,7 @@ export default function PayoutsPage() {
           <CardContent className="p-5">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10">
-                <IndianRupee className="h-4 w-4 text-emerald-600" />
+                <span className="text-sm font-bold text-emerald-600">{currencySymbol}</span>
               </div>
               <div>
                 <p className="text-2xl font-bold">{formatCurrency(balance)}</p>
@@ -202,7 +206,7 @@ export default function PayoutsPage() {
           <div>
             <p className="text-sm font-medium text-blue-900">Payout Schedule</p>
             <p className="text-sm text-blue-700">
-              Payouts are processed on the 1st of each month for the previous month&apos;s earnings. Minimum payout threshold is ₹1,000.
+              Payouts are processed on the 1st of each month for the previous month&apos;s earnings. Minimum payout threshold is {currencySymbol}1,000.
             </p>
           </div>
         </CardContent>

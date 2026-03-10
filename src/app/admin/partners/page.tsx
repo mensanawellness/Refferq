@@ -91,6 +91,7 @@ export default function PartnersPage() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [selectedPartners, setSelectedPartners] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currencySymbol, setCurrencySymbol] = useState('₹');
   const [sortField, setSortField] = useState<keyof Partner>('createdAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
@@ -144,6 +145,7 @@ export default function PartnersPage() {
           groupName: '',
         }));
         setPartners(formattedPartners);
+        setCurrencySymbol(data.currencySymbol || '₹');
       }
     } catch (error) {
       console.error('Failed to fetch partners:', error);
@@ -156,27 +158,27 @@ export default function PartnersPage() {
     let filtered = partners;
 
     if (activeTab === 'active') {
-      filtered = filtered.filter((p) => p.status === 'ACTIVE');
+      filtered = filtered.filter((p: Partner) => p.status === 'ACTIVE');
     } else if (activeTab === 'pending') {
-      filtered = filtered.filter((p) => p.status === 'PENDING');
+      filtered = filtered.filter((p: Partner) => p.status === 'PENDING');
     } else if (activeTab === 'invited') {
-      filtered = filtered.filter((p) => p.status === 'INVITED');
+      filtered = filtered.filter((p: Partner) => p.status === 'INVITED');
     } else {
-      filtered = filtered.filter((p) => !['ACTIVE', 'PENDING', 'INVITED'].includes(p.status));
+      filtered = filtered.filter((p: Partner) => !['ACTIVE', 'PENDING', 'INVITED'].includes(p.status));
     }
 
     if (searchQuery) {
       filtered = filtered.filter(
-        (p) =>
+        (p: Partner) =>
           p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           p.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
           p.referralCode.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    filtered.sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
+    filtered.sort((a: Partner, b: Partner) => {
+      const aValue = (a as any)[sortField];
+      const bValue = (b as any)[sortField];
       if (typeof aValue === 'string' && typeof bValue === 'string') {
         return sortDirection === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
       }
@@ -236,8 +238,8 @@ export default function PartnersPage() {
   };
 
   const handleSelectPartner = (partnerId: string) => {
-    setSelectedPartners((prev) =>
-      prev.includes(partnerId) ? prev.filter((id) => id !== partnerId) : [...prev, partnerId]
+    setSelectedPartners((prev: string[]) =>
+      prev.includes(partnerId) ? prev.filter((id: string) => id !== partnerId) : [...prev, partnerId]
     );
   };
 
@@ -245,7 +247,7 @@ export default function PartnersPage() {
     if (selectedPartners.length === filteredPartners.length) {
       setSelectedPartners([]);
     } else {
-      setSelectedPartners(filteredPartners.map((p) => p.id));
+      setSelectedPartners(filteredPartners.map((p: Partner) => p.id));
     }
   };
 
@@ -253,7 +255,7 @@ export default function PartnersPage() {
     const partnersToExport =
       exportType === 'all'
         ? filteredPartners
-        : filteredPartners.filter((p) => selectedPartners.includes(p.id));
+        : filteredPartners.filter((p: Partner) => selectedPartners.includes(p.id));
 
     if (partnersToExport.length === 0) {
       alert('No partners to export');
@@ -262,7 +264,7 @@ export default function PartnersPage() {
 
     const csv = [
       ['Name', 'Email', 'Referral Code', 'Status', 'Signed Up', 'Clicks', 'Leads', 'Customers', 'Revenue', 'Earnings'].join(','),
-      ...partnersToExport.map((p) =>
+      ...partnersToExport.map((p: Partner) =>
         [
           `"${p.name}"`, p.email, p.referralCode, p.status,
           new Date(p.createdAt).toLocaleDateString(), p.clicks, p.leads,
@@ -318,10 +320,10 @@ export default function PartnersPage() {
   };
 
   const tabCounts = {
-    active: partners.filter((p) => p.status === 'ACTIVE').length,
-    pending: partners.filter((p) => p.status === 'PENDING').length,
-    invited: partners.filter((p) => p.status === 'INVITED').length,
-    other: partners.filter((p) => !['ACTIVE', 'PENDING', 'INVITED'].includes(p.status)).length,
+    active: partners.filter((p: Partner) => p.status === 'ACTIVE').length,
+    pending: partners.filter((p: Partner) => p.status === 'PENDING').length,
+    invited: partners.filter((p: Partner) => p.status === 'INVITED').length,
+    other: partners.filter((p: Partner) => !['ACTIVE', 'PENDING', 'INVITED'].includes(p.status)).length,
   };
 
   const SortIcon = ({ field }: { field: keyof Partner }) => {
@@ -398,7 +400,7 @@ export default function PartnersPage() {
               <Input
                 placeholder="Search partners..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
                 className="pl-9 w-64"
               />
             </div>
@@ -500,13 +502,13 @@ export default function PartnersPage() {
               </TableHeader>
               <TableBody>
                 {filteredPartners.length > 0 ? (
-                  filteredPartners.map((partner) => (
+                  filteredPartners.map((partner: Partner) => (
                     <TableRow
                       key={partner.id}
                       className="cursor-pointer"
                       onClick={() => router.push(`/admin/partners/${partner.id}`)}
                     >
-                      <TableCell onClick={(e) => e.stopPropagation()}>
+                      <TableCell onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                         <Checkbox
                           checked={selectedPartners.includes(partner.id)}
                           onCheckedChange={() => handleSelectPartner(partner.id)}
@@ -531,10 +533,10 @@ export default function PartnersPage() {
                       <TableCell>{partner.leads}</TableCell>
                       <TableCell>{partner.customers}</TableCell>
                       <TableCell className="text-right font-medium">
-                        ₹{(partner.revenue / 100).toFixed(2)}
+                        {currencySymbol}{(partner.revenue / 100).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        ₹{(partner.earnings / 100).toFixed(2)}
+                        {currencySymbol}{(partner.earnings / 100).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {new Date(partner.createdAt).toLocaleDateString('en-US', {
@@ -579,7 +581,7 @@ export default function PartnersPage() {
                   <Input
                     id="firstName"
                     value={newPartner.firstName}
-                    onChange={(e) => setNewPartner({ ...newPartner, firstName: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPartner({ ...newPartner, firstName: e.target.value })}
                     required
                   />
                 </div>
@@ -588,7 +590,7 @@ export default function PartnersPage() {
                   <Input
                     id="lastName"
                     value={newPartner.lastName}
-                    onChange={(e) => setNewPartner({ ...newPartner, lastName: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPartner({ ...newPartner, lastName: e.target.value })}
                     required
                   />
                 </div>
@@ -599,7 +601,7 @@ export default function PartnersPage() {
                   id="email"
                   type="email"
                   value={newPartner.email}
-                  onChange={(e) => setNewPartner({ ...newPartner, email: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPartner({ ...newPartner, email: e.target.value })}
                   required
                 />
               </div>
@@ -608,7 +610,7 @@ export default function PartnersPage() {
                 <Input
                   id="company"
                   value={newPartner.company}
-                  onChange={(e) => setNewPartner({ ...newPartner, company: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPartner({ ...newPartner, company: e.target.value })}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -616,7 +618,7 @@ export default function PartnersPage() {
                   <Label>Partner Group</Label>
                   <Select
                     value={newPartner.partnerGroup}
-                    onValueChange={(value) => setNewPartner({ ...newPartner, partnerGroup: value })}
+                    onValueChange={(value: string) => setNewPartner({ ...newPartner, partnerGroup: value })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -630,7 +632,7 @@ export default function PartnersPage() {
                   <Label>Payout Method</Label>
                   <Select
                     value={newPartner.payoutMethod}
-                    onValueChange={(value) => setNewPartner({ ...newPartner, payoutMethod: value })}
+                    onValueChange={(value: string) => setNewPartner({ ...newPartner, payoutMethod: value })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -650,7 +652,7 @@ export default function PartnersPage() {
                   id="paypalEmail"
                   type="email"
                   value={newPartner.paypalEmail}
-                  onChange={(e) => setNewPartner({ ...newPartner, paypalEmail: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPartner({ ...newPartner, paypalEmail: e.target.value })}
                   placeholder="defaults to partner email"
                 />
               </div>
@@ -658,7 +660,7 @@ export default function PartnersPage() {
                 <Switch
                   id="sendWelcomeEmail"
                   checked={newPartner.sendWelcomeEmail}
-                  onCheckedChange={(checked) => setNewPartner({ ...newPartner, sendWelcomeEmail: checked })}
+                  onCheckedChange={(checked: boolean) => setNewPartner({ ...newPartner, sendWelcomeEmail: checked })}
                 />
                 <Label htmlFor="sendWelcomeEmail">Send welcome email</Label>
               </div>
@@ -690,7 +692,7 @@ export default function PartnersPage() {
                 id="inviteEmail"
                 type="email"
                 value={invitePartner.email}
-                onChange={(e) => setInvitePartner({ ...invitePartner, email: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInvitePartner({ ...invitePartner, email: e.target.value })}
                 placeholder="partner@example.com"
                 required
               />
@@ -699,7 +701,7 @@ export default function PartnersPage() {
               <Label>Partner Group</Label>
               <Select
                 value={invitePartner.partnerGroup}
-                onValueChange={(value) => setInvitePartner({ ...invitePartner, partnerGroup: value })}
+                onValueChange={(value: string) => setInvitePartner({ ...invitePartner, partnerGroup: value })}
               >
                 <SelectTrigger>
                   <SelectValue />

@@ -1,38 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET!
-);
 
 export async function GET(request: NextRequest) {
   try {
-    const token = request.cookies.get('auth-token')?.value;
+    const userId = request.headers.get('x-user-id')!;
 
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No authentication token' },
-        { status: 401 }
-      );
-    }
+    // Get user from database
 
-    // Verify JWT token
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    
     // Get user from database
     const user = await prisma.user.findUnique({
-      where: { id: payload.userId as string }
+      where: { id: userId }
     });
 
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 401 }
-      );
-    }
-
-    if (user.role !== 'ADMIN') {
+    if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Access denied. Admin role required.' },
         { status: 403 }
@@ -63,9 +43,14 @@ export async function GET(request: NextRequest) {
       }
     });
 
+    // Get currency symbol
+    const { getCurrencySymbol } = await import('@/lib/currency');
+    const currencySymbol = await getCurrencySymbol();
+
     return NextResponse.json({
       success: true,
-      affiliates
+      affiliates,
+      currencySymbol, // Add currency symbol to response
     });
   } catch (error) {
     console.error('Get affiliates API error:', error);
@@ -78,31 +63,16 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const token = request.cookies.get('auth-token')?.value;
+    const userId = request.headers.get('x-user-id')!;
 
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No authentication token' },
-        { status: 401 }
-      );
-    }
+    // Get user from database
 
-    // Verify JWT token
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    
     // Get user from database
     const user = await prisma.user.findUnique({
-      where: { id: payload.userId as string }
+      where: { id: userId }
     });
 
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 401 }
-      );
-    }
-
-    if (user.role !== 'ADMIN') {
+    if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Access denied. Admin role required.' },
         { status: 403 }
@@ -110,14 +80,18 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, email, password } = body;
 
-    if (!name || !email) {
+    // Validate with Zod
+    const { success, data, error: validationError } = await import('@/lib/validations').then(m => m.affiliateCreateSchema.safeParse(body));
+
+    if (!success) {
       return NextResponse.json(
-        { error: 'Name and email are required' },
+        { error: 'Validation failed', details: validationError.issues },
         { status: 400 }
       );
     }
+
+    const { name, email, password } = data;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({

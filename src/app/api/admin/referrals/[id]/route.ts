@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET!
-);
 
 export async function PUT(
   request: NextRequest, 
@@ -12,19 +8,10 @@ export async function PUT(
 ) {
   try {
     const params = await context.params;
-    const token = request.cookies.get('auth-token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No authentication token' },
-        { status: 401 }
-      );
-    }
-
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const userId = request.headers.get('x-user-id')!;
     
     const user = await prisma.user.findUnique({
-      where: { id: payload.userId as string }
+      where: { id: userId }
     });
 
     if (!user || user.role !== 'ADMIN') {
@@ -127,19 +114,10 @@ export async function PATCH(
 ) {
   try {
     const params = await context.params;
-    const token = request.cookies.get('auth-token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No authentication token' },
-        { status: 401 }
-      );
-    }
-
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const userId = request.headers.get('x-user-id')!;
     
     const user = await prisma.user.findUnique({
-      where: { id: payload.userId as string }
+      where: { id: userId }
     });
 
     if (!user || user.role !== 'ADMIN') {
@@ -255,19 +233,10 @@ export async function DELETE(
 ) {
   try {
     const params = await context.params;
-    const token = request.cookies.get('auth-token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No authentication token' },
-        { status: 401 }
-      );
-    }
-
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const userId = request.headers.get('x-user-id')!;
     
     const user = await prisma.user.findUnique({
-      where: { id: payload.userId as string }
+      where: { id: userId }
     });
 
     if (!user || user.role !== 'ADMIN') {

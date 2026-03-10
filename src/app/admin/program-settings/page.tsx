@@ -59,6 +59,7 @@ import {
   Copy,
   ExternalLink,
   Zap,
+  Clock,
 } from 'lucide-react';
 
 interface ProgramSettings {
@@ -71,6 +72,7 @@ interface ProgramSettings {
   portalSubdomain: string;
   minimumPayoutThreshold: number;
   payoutTerm: string;
+  commissionHoldDays: number;
   commissionRules: CommissionRule[];
 }
 
@@ -145,6 +147,7 @@ export default function ProgramSettingsPage() {
           portalSubdomain: settings.portalSubdomain,
           minimumPayoutThreshold: settings.minimumPayoutThreshold,
           payoutTerm: settings.payoutTerm,
+          commissionHoldDays: settings.commissionHoldDays,
         }),
       });
       if (res.ok) {
@@ -165,7 +168,7 @@ export default function ProgramSettingsPage() {
       const ruleData = editingRule
         ? { id: editingRule.id, name: ruleForm.name, type: ruleForm.type, value: parseFloat(ruleForm.value), isDefault: ruleForm.isDefault }
         : { name: ruleForm.name, type: ruleForm.type, value: parseFloat(ruleForm.value), isDefault: ruleForm.isDefault };
-      
+
       const res = await fetch('/api/admin/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -353,6 +356,23 @@ export default function ProgramSettingsPage() {
                   <SelectItem value="NET-90">NET-90</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="commissionHoldDays">Commission Hold Period (Days)</Label>
+              <div className="relative">
+                <Clock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="commissionHoldDays"
+                  type="number"
+                  className="pl-9"
+                  value={settings.commissionHoldDays}
+                  onChange={(e) =>
+                    setSettings({ ...settings, commissionHoldDays: parseInt(e.target.value) || 0 })
+                  }
+                  placeholder="30"
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground">Number of days to hold commissions for refund protection</p>
             </div>
           </div>
           <div className="rounded-md bg-muted p-3">
@@ -569,7 +589,7 @@ export default function ProgramSettingsPage() {
                   </Button>
                 </div>
                 <div className="rounded-md bg-muted p-4 font-mono text-sm overflow-x-auto whitespace-pre">
-{`// Track a conversion (e.g. after signup or purchase)
+                  {`// Track a conversion (e.g. after signup or purchase)
 Refferq.trackConversion({
   email: customer.email,
   name: customer.name,
@@ -590,7 +610,7 @@ Refferq.trackConversion({
                   </Button>
                 </div>
                 <div className="rounded-md bg-muted p-4 font-mono text-sm overflow-x-auto whitespace-pre">
-{`// Get the current referral code (or null)
+                  {`// Get the current referral code (or null)
 const code = Refferq.getReferralCode();
 
 // Clear the stored referral code

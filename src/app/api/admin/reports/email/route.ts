@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { resend } from '@/lib/email';
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 
 async function verifyAdmin(request: NextRequest) {
   const token = request.cookies.get('auth-token')?.value;
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    const user = await prisma.user.findUnique({ where: { id: payload.userId as string } });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user || user.role !== 'ADMIN') return null;
     return user;
   } catch {

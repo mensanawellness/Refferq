@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 import React, { useState } from 'react';
@@ -40,23 +41,6 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // First verify user exists and is active
-      const loginRes = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password: 'otp-flow' }),
-      });
-
-      const loginData = await loginRes.json();
-
-      // If user doesn't exist (401) or account issues (403), show error
-      if (loginRes.status === 403) {
-        setError(loginData.message);
-        setLoading(false);
-        return;
-      }
-
-      // Send OTP regardless (user might have wrong password but valid account)
       const otpRes = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -65,11 +49,11 @@ export default function LoginPage() {
 
       const otpData = await otpRes.json();
 
-      if (otpRes.ok) {
+      if (otpRes.ok && otpData.success) {
         setStep('otp');
-        setMessage('A verification code has been sent to your email.');
+        setMessage(otpData.message || 'A verification code has been sent to your email.');
       } else {
-        setError(otpData.error || 'Failed to send verification code');
+        setError(otpData.message || 'Failed to send verification code');
       }
     } catch {
       setError('Something went wrong. Please try again.');

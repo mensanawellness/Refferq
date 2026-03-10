@@ -47,7 +47,9 @@ import {
   Ban,
   TrendingUp,
   ArrowRight,
+  Banknote,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AffiliateStats {
   totalEarnings: number;
@@ -59,6 +61,8 @@ interface AffiliateStats {
   conversionRate: number;
   referralLink: string;
   referralCode: string;
+  currencySymbol: string;
+  nextMaturesAt: string | null;
 }
 
 interface Referral {
@@ -75,6 +79,7 @@ export default function AffiliateDashboard() {
   const { user, loading: authLoading } = useAuth();
   const [stats, setStats] = useState<AffiliateStats | null>(null);
   const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [currencySymbol, setCurrencySymbol] = useState('₹');
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [copied, setCopied] = useState<'link' | 'code' | null>(null);
@@ -111,8 +116,11 @@ export default function AffiliateDashboard() {
           conversionRate: data.stats?.conversionRate || 0,
           referralLink: `${window.location.origin}/r/${data.affiliate?.referralCode}`,
           referralCode: data.affiliate?.referralCode || '',
+          currencySymbol: data.currencySymbol || '₹',
+          nextMaturesAt: data.stats?.nextMaturesAt || null,
         });
         setReferrals(data.referrals || []);
+        setCurrencySymbol(data.currencySymbol || '₹');
       }
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
@@ -182,7 +190,7 @@ export default function AffiliateDashboard() {
     new Date(date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
 
   const formatCurrency = (cents: number) =>
-    `\u20B9${(cents / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    `${currencySymbol}${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const getStatusBadge = (status: string) => {
     const map: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ElementType }> = {
@@ -222,78 +230,87 @@ export default function AffiliateDashboard() {
       )}
 
       {/* Commission Banner */}
-      <Card className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-0">
-        <CardContent className="flex items-center justify-between p-5">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
-              <IndianRupee className="h-6 w-6" />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.2 }}
+      >
+        <Card className="bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 text-white border-0 shadow-lg overflow-hidden relative group">
+          <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl -translate-x-full group-hover:translate-x-full" />
+          <CardContent className="flex items-center justify-between p-6 relative z-10">
+            <div className="flex items-center gap-5">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md shadow-inner">
+                <span className="text-2xl font-bold">{currencySymbol}</span>
+              </div>
+              <div>
+                <p className="text-sm text-white/90 font-medium tracking-wide">Earn 20% commission on all paid customers</p>
+                <p className="text-xl font-bold mt-1 tracking-tight">Start referring today and grow your wealth!</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-white/80 font-medium">Earn 20% commission on all paid customers</p>
-              <p className="text-lg font-bold mt-0.5">Start referring today and grow your earnings!</p>
-            </div>
-          </div>
-          <Button variant="secondary" onClick={() => setShowSubmitModal(true)} className="gap-1.5 hidden sm:flex">
-            <Plus className="h-4 w-4" />
-            Submit Lead
-          </Button>
-        </CardContent>
-      </Card>
+            <Button variant="secondary" onClick={() => setShowSubmitModal(true)} className="gap-2 hidden sm:flex bg-white text-emerald-700 hover:bg-emerald-50 border-0 shadow-md transform transition hover:scale-105 active:scale-95">
+              <Plus className="h-4 w-4" />
+              Submit Lead
+            </Button>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardContent className="p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10">
-                <IndianRupee className="h-4 w-4 text-emerald-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-emerald-600">{formatCurrency(stats?.totalEarnings || 0)}</p>
-                <p className="text-xs text-muted-foreground">Total Earnings</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
-                <MousePointerClick className="h-4 w-4 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats?.totalClicks || 0}</p>
-                <p className="text-xs text-muted-foreground">Total Clicks</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10">
-                <Target className="h-4 w-4 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats?.totalLeads || 0}</p>
-                <p className="text-xs text-muted-foreground">Total Leads</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-500/10">
-                <TrendingUp className="h-4 w-4 text-violet-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats?.conversionRate?.toFixed(1) || '0.0'}%</p>
-                <p className="text-xs text-muted-foreground">Conversion Rate</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
+        {[
+          {
+            label: 'Available Balance',
+            value: formatCurrency(stats?.totalEarnings || 0),
+            icon: Banknote,
+            color: 'text-emerald-600',
+            bg: 'bg-emerald-500/10',
+            description: 'Ready for payout'
+          },
+          {
+            label: 'Pending Balance',
+            value: formatCurrency(stats?.pendingEarnings || 0),
+            icon: Clock,
+            color: 'text-amber-600',
+            bg: 'bg-amber-500/10',
+            description: stats?.nextMaturesAt
+              ? `Next maturity: ${new Date(stats.nextMaturesAt).toLocaleDateString()}`
+              : 'Held for refund period'
+          },
+          { label: 'Total Clicks', value: stats?.totalClicks || 0, icon: MousePointerClick, color: 'text-blue-600', bg: 'bg-blue-500/10' },
+          { label: 'Total Leads', value: stats?.totalLeads || 0, icon: Target, color: 'text-rose-600', bg: 'bg-rose-500/10' },
+          { label: 'Conv. Rate', value: `${stats?.conversionRate?.toFixed(1) || '0.0'}%`, icon: TrendingUp, color: 'text-violet-600', bg: 'bg-violet-500/10' },
+        ].map((stat, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 + i * 0.1 }}
+            whileHover={{ y: -5 }}
+          >
+            <Card className="glass-card border-0">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${stat.bg} backdrop-blur-sm transition-transform group-hover:scale-110`}>
+                    {stat.icon === Banknote ? (
+                      <span className={`text-lg font-bold ${stat.color}`}>{currencySymbol}</span>
+                    ) : (
+                      <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                    )}
+                  </div>
+                  <div>
+                    <p className={`text-2xl font-bold ${stat.color}`}>
+                      {stat.value}
+                    </p>
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">{stat.label}</p>
+                    {stat.description && (
+                      <p className="text-[10px] text-muted-foreground/70 mt-0.5 italic">{stat.description}</p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
       </div>
 
       {/* Referral Links */}
@@ -388,7 +405,7 @@ export default function AffiliateDashboard() {
                     <TableCell>{getStatusBadge(ref.status)}</TableCell>
                     <TableCell className="text-muted-foreground text-sm">{formatDate(ref.createdAt)}</TableCell>
                     <TableCell className="text-right font-semibold">
-                      {`\u20B9${(Number(ref.estimatedValue) || 0).toFixed(2)}`}
+                      {`${currencySymbol}${(Number(ref.estimatedValue) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -463,7 +480,7 @@ export default function AffiliateDashboard() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Estimated Deal Size (₹) *</Label>
+              <Label>Estimated Deal Size ({currencySymbol}) *</Label>
               <Input
                 type="number"
                 required

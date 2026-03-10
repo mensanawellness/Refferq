@@ -1,27 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET!
-);
 
 export async function POST(request: NextRequest) {
   try {
-    const token = request.cookies.get('auth-token')?.value;
+    const userId = request.headers.get('x-user-id')!;
 
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No authentication token' },
-        { status: 401 }
-      );
-    }
+    // Get user from database
 
-    // Verify JWT token
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    
     // Get user from database
     const user = await prisma.user.findUnique({
-      where: { id: payload.userId as string },
+      where: { id: userId },
       include: {
         affiliate: true
       }
@@ -49,37 +37,31 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { lead_name, lead_email, company, notes, estimated_value } = body;
 
-    // Validate required fields
-    if (!lead_name || !lead_email) {
+    // Validate with Zod
+    const { success, data, error: validationError } = await import('@/lib/validations').then(m => m.referralSchema.safeParse(body));
+
+    if (!success) {
       return NextResponse.json(
-        { error: 'Lead name and email are required' },
+        { error: 'Validation failed', details: validationError.issues },
         { status: 400 }
       );
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(lead_email)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 }
-      );
-    }
+    const { leadName, leadEmail, company, notes, estimatedValue } = data;
 
     // Create the referral
     const referral = await prisma.referral.create({
       data: {
         affiliateId: user.affiliate.id,
-        leadName: lead_name.trim(),
-        leadEmail: lead_email.toLowerCase().trim(),
+        leadName: leadName.trim(),
+        leadEmail: leadEmail.toLowerCase().trim(),
         status: 'PENDING',
         metadata: {
           company: company || '',
           notes: notes || '',
           source: 'manual',
-          estimated_value: estimated_value || 0,
+          estimated_value: estimatedValue || 0,
         },
       }
     });
@@ -100,21 +82,13 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const token = request.cookies.get('auth-token')?.value;
+    const userId = request.headers.get('x-user-id')!;
 
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No authentication token' },
-        { status: 401 }
-      );
-    }
+    // Get user from database
 
-    // Verify JWT token
-    const { payload } = await jwtVerify(token, JWT_SECRET);
-    
     // Get user from database
     const user = await prisma.user.findUnique({
-      where: { id: payload.userId as string },
+      where: { id: userId },
       include: {
         affiliate: true
       }
@@ -147,7 +121,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Map referrals to include estimatedValue from metadata
-    const mappedReferrals = referrals.map(ref => {
+    const mappedReferrals = referrals.map((ref: any) => {
       const metadata = ref.metadata as any;
       return {
         ...ref,
