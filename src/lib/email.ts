@@ -85,6 +85,16 @@ export interface CommissionNotificationData {
 class EmailService {
   private defaultFrom = process.env.RESEND_FROM_EMAIL || 'Refferq <noreply@refferq.com>';
 
+  /** Escape HTML special characters to prevent XSS in email templates */
+  private escapeHtml(str: string): string {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   private async getCurrencySymbol(): Promise<string> {
     const { getCurrencySymbol } = await import('./currency');
     return await getCurrencySymbol();
@@ -182,8 +192,8 @@ class EmailService {
         <h1>Welcome to Refferq! 🎉</h1>
       </div>
       <div class="content">
-        <h2>Hello ${data.name}!</h2>
-        <p>Thank you for joining our affiliate platform as a <strong>${data.role}</strong>.</p>
+        <h2>Hello ${this.escapeHtml(data.name)}!</h2>
+        <p>Thank you for joining our affiliate platform as a <strong>${this.escapeHtml(data.role)}</strong>.</p>
         
         ${data.role === 'affiliate' ? `
         <p>Your account is currently pending approval. Our admin team will review your application and activate your account within 24-48 hours.</p>
@@ -208,7 +218,7 @@ class EmailService {
         ${data.password ? `
         <div style="background: #ffffff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; margin: 20px 0;">
           <p style="margin-top: 0; font-weight: bold; color: #64748b;">Your Initial Password:</p>
-          <code style="background: #f1f5f9; padding: 10px; display: block; border-radius: 4px; font-size: 18px; text-align: center; color: #0f172a;">${data.password}</code>
+          <code style="background: #f1f5f9; padding: 10px; display: block; border-radius: 4px; font-size: 18px; text-align: center; color: #0f172a;">${this.escapeHtml(data.password)}</code>
           <p style="margin-bottom: 0; font-size: 13px; color: #94a3b8; text-align: center; margin-top: 10px;">For security, please change your password after your first login.</p>
         </div>
         ` : ''}
@@ -222,7 +232,7 @@ class EmailService {
         <p>Best regards,<br>The Refferq Team</p>
       </div>
       <div class="footer">
-        <p>This email was sent to ${data.email}</p>
+        <p>This email was sent to ${this.escapeHtml(data.email)}</p>
         <p>© ${new Date().getFullYear()} Refferq. All rights reserved.</p>
       </div>
     </body>
@@ -255,10 +265,10 @@ class EmailService {
         
         <div class="details">
           <h3>Referral Details:</h3>
-          <p><strong>Affiliate:</strong> ${data.affiliateName}</p>
-          <p><strong>Lead Name:</strong> ${data.leadName}</p>
-          <p><strong>Lead Email:</strong> ${data.leadEmail}</p>
-          ${data.company ? `<p><strong>Company:</strong> ${data.company}</p>` : ''}
+          <p><strong>Affiliate:</strong> ${this.escapeHtml(data.affiliateName)}</p>
+          <p><strong>Lead Name:</strong> ${this.escapeHtml(data.leadName)}</p>
+          <p><strong>Lead Email:</strong> ${this.escapeHtml(data.leadEmail)}</p>
+          ${data.company ? `<p><strong>Company:</strong> ${this.escapeHtml(data.company)}</p>` : ''}
           ${data.estimatedValue ? `<p><strong>Estimated Value:</strong> $${(data.estimatedValue / 100).toFixed(2)}</p>` : ''}
         </div>
         
@@ -300,15 +310,15 @@ class EmailService {
         <h1>Referral ${statusText} ${emoji}</h1>
       </div>
       <div class="content">
-        <h2>Hello ${data.affiliateName}!</h2>
+        <h2>Hello ${this.escapeHtml(data.affiliateName)}!</h2>
         <p>Your referral submission has been <strong>${statusText.toLowerCase()}</strong>.</p>
         
         <div class="details">
           <h3>Referral Details:</h3>
-          <p><strong>Lead Name:</strong> ${data.leadName}</p>
+          <p><strong>Lead Name:</strong> ${this.escapeHtml(data.leadName)}</p>
           <p><strong>Status:</strong> ${statusText}</p>
           ${isApproved ? `<p><strong>Commission Amount:</strong> $${(data.commissionAmount / 100).toFixed(2)}</p>` : ''}
-          ${data.notes ? `<p><strong>Notes:</strong> ${data.notes}</p>` : ''}
+          ${data.notes ? `<p><strong>Notes:</strong> ${this.escapeHtml(data.notes)}</p>` : ''}
         </div>
         
         ${isApproved ? `
@@ -348,14 +358,14 @@ class EmailService {
         <h1>Payout Processed 💰</h1>
       </div>
       <div class="content">
-        <h2>Hello ${data.affiliateName}!</h2>
+        <h2>Hello ${this.escapeHtml(data.affiliateName)}!</h2>
         <p>Great news! Your commission payout has been processed.</p>
         
         <div class="details">
           <h3>Payout Details:</h3>
           <p><strong>Amount:</strong> ${this.formatAmount(data.amount, symbol)}</p>
           <p><strong>Method:</strong> ${data.method === 'stripe_connect' ? 'Stripe Connect' : 'Bank Transfer'}</p>
-          <p><strong>Processing Date:</strong> ${data.processingDate}</p>
+          <p><strong>Processing Date:</strong> ${this.escapeHtml(data.processingDate)}</p>
         </div>
         
         ${data.method === 'bank_csv' ? `
@@ -398,14 +408,14 @@ class EmailService {
         <h1>🎉 Referral Converted!</h1>
       </div>
       <div class="content">
-        <h2>Hello ${data.affiliateName}!</h2>
-        <p>Great news! Your referred lead, <strong>${data.leadName}</strong>, has successfully converted!</p>
+        <h2>Hello ${this.escapeHtml(data.affiliateName)}!</h2>
+        <p>Great news! Your referred lead, <strong>${this.escapeHtml(data.leadName)}</strong>, has successfully converted!</p>
         
         <div class="details">
           <h3>Conversion Details:</h3>
-          <p><strong>Lead Name:</strong> ${data.leadName}</p>
-          <p><strong>Lead Email:</strong> ${data.leadEmail}</p>
-          ${data.company ? `<p><strong>Company:</strong> ${data.company}</p>` : ''}
+          <p><strong>Lead Name:</strong> ${this.escapeHtml(data.leadName)}</p>
+          <p><strong>Lead Email:</strong> ${this.escapeHtml(data.leadEmail)}</p>
+          ${data.company ? `<p><strong>Company:</strong> ${this.escapeHtml(data.company)}</p>` : ''}
           <p><strong>Converted Amount:</strong> ${this.formatAmount(data.convertedAmountCents, symbol)}</p>
           <p><strong>Your Commission:</strong> ${this.formatAmount(data.commissionCents, symbol)}</p>
         </div>
@@ -453,7 +463,7 @@ class EmailService {
           <h1>💰 New Commission Earned!</h1>
         </div>
         <div class="content">
-          <h2>Great news, ${data.affiliateName}!</h2>
+          <h2>Great news, ${this.escapeHtml(data.affiliateName)}!</h2>
           <p>A customer you referred has made a payment, and you've earned a commission!</p>
           
           <div class="amount-box">
@@ -466,7 +476,7 @@ class EmailService {
             <h3 style="margin-top: 0;">Transaction Details</h3>
             <div class="detail-row">
               <span>Customer:</span>
-              <strong>${data.customerName}</strong>
+              <strong>${this.escapeHtml(data.customerName)}</strong>
             </div>
             <div class="detail-row">
               <span>Transaction Amount:</span>
@@ -482,7 +492,7 @@ class EmailService {
             </div>
             <div class="detail-row" style="border-bottom: none;">
               <span>Transaction ID:</span>
-              <strong style="font-size: 12px;">${data.transactionId}</strong>
+              <strong style="font-size: 12px;">${this.escapeHtml(data.transactionId)}</strong>
             </div>
           </div>
           
@@ -742,7 +752,7 @@ class EmailService {
           <h1>🎉 Payout Initiated!</h1>
         </div>
         <div class="content">
-          <h2>Hello ${data.affiliateName}!</h2>
+          <h2>Hello ${this.escapeHtml(data.affiliateName)}!</h2>
           <p>Good news! A payout has been initiated for your earned commissions.</p>
           
           <div class="amount-box">
@@ -756,8 +766,8 @@ class EmailService {
           <div class="details">
             <h3 style="margin-top: 0;">Payout Details</h3>
             <p><strong>Commissions Included:</strong> ${data.commissionCount} commission${data.commissionCount > 1 ? 's' : ''}</p>
-            ${data.method ? `<p><strong>Payment Method:</strong> ${data.method}</p>` : ''}
-            <p><strong>Payout ID:</strong> <code style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${data.payoutId}</code></p>
+            ${data.method ? `<p><strong>Payment Method:</strong> ${this.escapeHtml(data.method)}</p>` : ''}
+            <p><strong>Payout ID:</strong> <code style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${this.escapeHtml(data.payoutId)}</code></p>
           </div>
           
           <p>Your payout is currently being processed. You'll receive another email once the payment has been completed.</p>
@@ -831,7 +841,7 @@ class EmailService {
         <div class="content">
           <div class="celebration">🎊 🎉 🥳</div>
           
-          <h2>Congratulations, ${data.affiliateName}!</h2>
+          <h2>Congratulations, ${this.escapeHtml(data.affiliateName)}!</h2>
           <p>Your payout has been successfully processed and the funds have been transferred.</p>
           
           <div class="amount-box">
@@ -845,9 +855,8 @@ class EmailService {
           <div class="details">
             <h3 style="margin-top: 0;">Payment Details</h3>
             <p><strong>Commissions Paid:</strong> ${data.commissionCount} commission${data.commissionCount > 1 ? 's' : ''}</p>
-            ${data.method ? `<p><strong>Payment Method:</strong> ${data.method}</p>` : ''}
-            <p><strong>Payment Date:</strong> ${date}</p>
-            <p><strong>Payout ID:</strong> <code style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${data.payoutId}</code></p>
+            ${data.method ? `<p><strong>Payment Method:</strong> ${this.escapeHtml(data.method)}</p>` : ''}
+            <p><strong>Payout ID:</strong> <code style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${this.escapeHtml(data.payoutId)}</code></p>
           </div>
           
           <div style="background: #d1fae5; border-left: 4px solid #10b981; padding: 15px; border-radius: 5px; margin: 20px 0;">
@@ -898,7 +907,7 @@ class EmailService {
           <h1 style="color: #ffffff; font-size: 22px; margin: 0;">Refferq Notification</h1>
         </div>
         <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 16px 16px;">
-          <p style="color: #374151; font-size: 15px; line-height: 1.6;">${data.body}</p>
+          <p style="color: #374151; font-size: 15px; line-height: 1.6;">${this.escapeHtml(data.body)}</p>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
           <p style="color: #9ca3af; font-size: 12px; text-align: center;">This is an automated notification from Refferq.</p>
         </div>

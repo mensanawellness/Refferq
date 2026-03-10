@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 import { prisma } from '@/lib/prisma';
@@ -135,8 +134,8 @@ export async function PUT(request: NextRequest) {
     });
 
     // Clear cache
-    revalidateTag('platform-settings');
-    revalidateTag('program-settings');
+    revalidateTag('platform-settings', 'default');
+    revalidateTag('program-settings', 'default');
 
     return NextResponse.json({
       success: true,
@@ -211,7 +210,7 @@ export async function POST(request: NextRequest) {
       });
 
       // Clear cache
-      revalidateTag('program-settings');
+      revalidateTag('program-settings', 'default');
 
       return NextResponse.json({
         success: true,
@@ -248,7 +247,7 @@ export async function POST(request: NextRequest) {
       });
 
       // Clear cache
-      revalidateTag('program-settings');
+      revalidateTag('program-settings', 'default');
 
       return NextResponse.json({
         success: true,
@@ -273,7 +272,7 @@ export async function POST(request: NextRequest) {
       });
 
       // Clear cache
-      revalidateTag('program-settings');
+      revalidateTag('program-settings', 'default');
 
       return NextResponse.json({
         success: true,

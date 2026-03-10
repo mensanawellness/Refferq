@@ -128,13 +128,15 @@
     const refCode = getReferralCodeFromURL();
     
     if (refCode) {
-      console.log('[Refferq] Referral code detected:', refCode);
-      trackReferral(refCode);
+      // Validate referral code format before tracking
+      if (/^[A-Za-z0-9\-]{3,32}$/.test(refCode)) {
+        trackReferral(refCode);
+      }
     } else {
       // Check if we have a stored referral code
       const storedRef = Cookies.get('refferq_ref');
       if (storedRef) {
-        console.log('[Refferq] Stored referral code found:', storedRef);
+        // Stored referral code found
       }
     }
   }

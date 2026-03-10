@@ -29,13 +29,23 @@ async function verifyAdmin(request: NextRequest) {
   }
 }
 
+function sanitizeCSVValue(val: unknown): string {
+  if (val === null || val === undefined) return '';
+  const str = String(val);
+  // Prevent CSV formula injection by prefixing dangerous characters with a single quote
+  const needsEscape = /^[=+\-@\t\r]/.test(str);
+  const escaped = str.replace(/"/g, '""');
+  if (needsEscape || str.includes(',') || str.includes('"') || str.includes('\n')) {
+    return `"${needsEscape ? "'" : ''}${escaped}"`;
+  }
+  return escaped;
+}
+
 function convertToCSV(data: any[]): string {
   if (!data || data.length === 0) return '';
-  const headers = Object.keys(data[0]).join(',');
+  const headers = Object.keys(data[0]).map(h => sanitizeCSVValue(h)).join(',');
   const rows = data.map(row =>
-    Object.values(row).map(val =>
-      typeof val === 'string' && val.includes(',') ? `"${val}"` : val
-    ).join(',')
+    Object.values(row).map(val => sanitizeCSVValue(val)).join(',')
   );
   return [headers, ...rows].join('\n');
 }

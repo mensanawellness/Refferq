@@ -224,7 +224,8 @@ export async function POST(request: NextRequest) {
       const { webhookId, url: testUrl } = body;
 
       let webhookUrl = testUrl;
-      let webhookSecret = 'test_secret';
+      const crypto = await import('crypto');
+      let webhookSecret = crypto.randomBytes(32).toString('hex');
 
       if (webhookId) {
         const webhook = await prisma.webhook.findUnique({

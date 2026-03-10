@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
 import { otpService } from '@/lib/otp';
 import { checkRateLimit } from '@/lib/rate-limit';

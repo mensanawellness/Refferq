@@ -52,31 +52,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check user status with specific messages
-    if (user.status === 'PENDING') {
-      return NextResponse.json(
-        { success: false, message: 'Your account is pending approval. Please wait for admin activation.' },
-        { status: 403 }
-      );
-    }
-
-    if (user.status === 'INACTIVE') {
-      return NextResponse.json(
-        { success: false, message: 'Your account has been deactivated. Please contact support.' },
-        { status: 403 }
-      );
-    }
-
-    if (user.status === 'SUSPENDED') {
-      return NextResponse.json(
-        { success: false, message: 'Your account has been suspended. Please contact support.' },
-        { status: 403 }
-      );
-    }
-
+    // Check user status - use generic message to prevent account status enumeration
     if (user.status !== 'ACTIVE') {
       return NextResponse.json(
-        { success: false, message: 'Account is not active' },
+        { success: false, message: 'Unable to log in. Please contact support if you need assistance.' },
         { status: 403 }
       );
     }
