@@ -1,5 +1,4 @@
-import { db } from './prisma';
-import { EmailService } from './email';
+import { prisma } from './prisma';
 import crypto from 'crypto';
 
 export class OTPService {
@@ -79,7 +78,9 @@ export class OTPService {
       });
 
       // Send OTP email
-      const emailResult = await resend.emails.send({
+      const { Resend } = await import('resend');
+      const resendClient = new Resend(process.env.RESEND_API_KEY);
+      const emailResult = await resendClient.emails.send({
         from: process.env.RESEND_FROM_EMAIL!,
         to: email,
         subject: 'Your Login Code',

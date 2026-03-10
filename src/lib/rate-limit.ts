@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import crypto from 'crypto';
 
 interface RateLimitResult {
   allowed: boolean;
@@ -97,7 +98,8 @@ export async function checkRateLimit(
  */
 export async function validateApiKey(key: string) {
   try {
-    const apiKey = await prisma.apiKey.findUnique({ where: { key } });
+    const keyHash = crypto.createHash('sha256').update(key).digest('hex');
+    const apiKey = await prisma.apiKey.findUnique({ where: { keyHash } });
 
     if (!apiKey) return null;
     if (!apiKey.isActive) return null;

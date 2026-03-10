@@ -99,7 +99,7 @@ class EmailService {
     try {
       const { prisma } = await import('./prisma');
       return await prisma.emailTemplate.findFirst({
-        where: { type, isActive: true }
+        where: { type: type as any, isActive: true }
       });
     } catch (error) {
       console.error(`Failed to fetch email template ${type}:`, error);
@@ -141,7 +141,7 @@ class EmailService {
     templateType: string;
     fallbackSubject: string;
     variables: Record<string, any>;
-    generateFallbackHtml: () => string;
+    generateFallbackHtml: () => Promise<string> | string;
   }): Promise<{ success: boolean; message: string }> {
     const dbTemplate = await this.getTemplateFromDb(params.templateType);
 
@@ -152,7 +152,7 @@ class EmailService {
       subject = this.replaceVariables(dbTemplate.subject, params.variables);
       html = this.replaceVariables(dbTemplate.body, params.variables);
     } else {
-      html = params.generateFallbackHtml();
+      html = await Promise.resolve(params.generateFallbackHtml());
     }
 
     return this.sendEmail({
@@ -230,7 +230,7 @@ class EmailService {
     `;
   }
 
-  private generateReferralNotificationHTML(data: ReferralNotificationData): string {
+  private generateReferralNotificationHTML(data: ReferralNotificationData, _symbol?: string): string {
     return `
     <!DOCTYPE html>
     <html>
@@ -275,7 +275,7 @@ class EmailService {
     `;
   }
 
-  private generateApprovalEmailHTML(data: ApprovalEmailData): string {
+  private generateApprovalEmailHTML(data: ApprovalEmailData, _symbol?: string): string {
     const isApproved = data.status === 'approved';
     const statusColor = isApproved ? '#28a745' : '#dc3545';
     const statusText = isApproved ? 'Approved' : 'Rejected';
@@ -503,50 +503,6 @@ class EmailService {
     `;
   }
 
-  private async sendTemplatedEmail<T extends Record<string, any>>({
-    to,
-    templateType,
-    fallbackSubject,
-    variables,
-    generateFallbackHtml,
-  }: {
-    to: string;
-    templateType: string;
-    fallbackSubject: string;
-    variables: T;
-    generateFallbackHtml: () => Promise<string> | string;
-  }): Promise<{ success: boolean; message: string }> {
-    try {
-      const dbTemplate = await this.getTemplateFromDb(templateType);
-
-      let subject = fallbackSubject;
-      let html = '';
-
-      if (dbTemplate) {
-        subject = this.replaceVariables(dbTemplate.subject, variables);
-        html = this.replaceVariables(dbTemplate.body, variables);
-      } else {
-        html = await Promise.resolve(generateFallbackHtml()); // Ensure it's awaited if it returns a Promise
-      }
-
-      const { Resend } = await import('resend');
-      const resend = new Resend(process.env.RESEND_API_KEY);
-
-      const result = await resend.emails.send({
-        from: this.defaultFrom,
-        to,
-        subject,
-        html,
-      });
-
-      console.log(`Email sent for template ${templateType} to ${to}:`, result);
-      return { success: true, message: `Email for ${templateType} sent successfully` };
-    } catch (error) {
-      console.error(`Failed to send email for template ${templateType} to ${to}:`, error);
-      return { success: false, message: `Failed to send email for ${templateType}` };
-    }
-  }
-
   async sendWelcomeEmail(data: WelcomeEmailData): Promise<{ success: boolean; message: string }> {
     return this.sendTemplatedEmail({
       to: data.email,
@@ -743,7 +699,7 @@ class EmailService {
       templateType: 'COMMISSION_EARNED', // Re-use commission earned template
       fallbackSubject: `💰 New Commission: ${commission} Earned!`,
       variables: { ...data, symbol },
-      generateFallbackHtml: () => this.generateCommissionNotificationHTML(data, symbol),
+      generateFallbackHtml: () => this.generateCommissionNotificationHTML({ ...data, affiliateEmail }, symbol),
     });
   }
 

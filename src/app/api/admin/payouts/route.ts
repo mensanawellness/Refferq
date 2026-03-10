@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
       data: {
         affiliateId,
         amountCents: totalAmountCents,
-        commissionCount: transactions.length,
+        commissionCount: commissions.length,
         status: 'PENDING',
         method: method || 'Bank Transfer',
         notes: notes || null,
@@ -242,7 +242,7 @@ export async function POST(request: NextRequest) {
         await emailService.sendPayoutCreatedEmail(affiliateUser.email, {
           affiliateName: payout.affiliate.name || affiliateUser.name || 'Partner',
           amountCents: totalAmountCents,
-          commissionCount: transactions.length,
+          commissionCount: commissions.length,
           payoutId: payout.id,
           method: method || 'Bank Transfer'
         });

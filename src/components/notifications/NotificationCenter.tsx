@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { notificationService, NotificationData } from '@/lib/notifications';
-import { auth } from '@/lib/auth';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function NotificationCenter() {
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const { user } = useAuth();
 
   useEffect(() => {
-    const user = auth.getCurrentUser();
     if (!user) return;
 
     const loadNotifications = () => {
@@ -25,7 +25,7 @@ export default function NotificationCenter() {
     const interval = setInterval(loadNotifications, 30000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [user]);
 
   const handleMarkAsRead = (notificationId: string) => {
     notificationService.markAsRead(notificationId);
@@ -36,7 +36,6 @@ export default function NotificationCenter() {
   };
 
   const handleMarkAllAsRead = () => {
-    const user = auth.getCurrentUser();
     if (!user) return;
 
     notificationService.markAllAsRead(user.id);
