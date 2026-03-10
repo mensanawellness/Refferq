@@ -93,7 +93,7 @@ export async function POST(request: Request) {
     const emailLog = await prisma.emailLog.create({
       data: {
         templateId: template.id,
-        recipientId: user.userId as string,
+        recipientId: user.id,
         recipientEmail: recipientEmail,
         subject: `[TEST] ${testSubject}`,
         body: testBody,
@@ -101,7 +101,7 @@ export async function POST(request: Request) {
         sentAt: new Date(),
         metadata: {
           isTest: true,
-          sentBy: String(user.userId),
+          sentBy: user.id,
         } as any,
       },
     });
