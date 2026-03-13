@@ -20,8 +20,7 @@ RUN npx prisma generate
 
 # Build Next.js (standalone output)
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV DATABASE_URL="postgresql://postgres.yhwvxggbwjotwmysxwzi:X55dLAX7Kq6Cf%kGib$o@aws-1-us-east-1.pooler.supabase.com:6543/postgres”
-RUN npm run build
+ENV DATABASE_URL="postgresql://postgres.yhwvxggbwjotwmysxwzi:X55dLAX7Kq6Cf%25kGib%24o@aws-1-us-east-1.pooler.supabase.com:6543/postgres"RUN npm run build
 
 # ---- Runner ----
 FROM base AS runner
