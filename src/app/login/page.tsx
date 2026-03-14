@@ -83,10 +83,10 @@ export default function LoginPage() {
       if (res.ok && data.success) {
         const user = data.user;
         if (user.role === 'ADMIN') {
-          router.push('/admin');
-        } else {
-          router.push('/affiliate');
-        }
+  window.location.href = '/admin';
+} else {
+  window.location.href = '/affiliate';
+}
       } else {
         setError(data.error || 'Invalid verification code');
       }
