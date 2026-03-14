@@ -2,8 +2,8 @@
   "version": 2,
   "name": "refferq",
   "framework": "nextjs",
-  "buildCommand": "npx prisma generate && npm run build",
-  "installCommand": "npm install",
+  "buildCommand": "npx prisma generate && node node_modules/next/dist/bin/next build --webpack",
+  "installCommand": "npm install --include=dev",
   "devCommand": "npm run dev",
   "regions": ["iad1"],
   "headers": [
