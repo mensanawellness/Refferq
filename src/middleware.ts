@@ -1,4 +1,15 @@
-import { NextResponse } from 'next/server';
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  
+  // TEMPORARY DEBUG - remove after diagnosis
+  console.log('[MW] pathname:', pathname);
+  console.log('[MW] JWT_SECRET exists:', !!process.env.JWT_SECRET);
+  console.log('[MW] JWT_SECRET length:', process.env.JWT_SECRET?.length || 0);
+  
+  const token = request.cookies.get('auth-token')?.value;
+  console.log('[MW] token exists:', !!token);
+  console.log('[MW] token length:', token?.length || 0);
+    import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
@@ -85,3 +96,12 @@ export const config = {
         '/api/auth/me',
     ],
 };
+ try {
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    console.log('[MW] JWT verified, role:', payload.role);
+    // ...
+  } catch (error) {
+    console.log('[MW] JWT verify failed:', error instanceof Error ? error.message : error);
+    // ...
+  }
+}
