@@ -152,13 +152,12 @@ export async function POST(req: NextRequest) {
     // Create conversion record
     // Convert amount to cents (BD sends as dollars with decimals)
     const amountCents = Math.round(parseFloat(amountCollected || 0) * 100);
-    const eventType = isPaidSignup ? 'PAID_SIGNUP' : 'FREE_SIGNUP';
 
     const conversion = await prisma.conversion.create({
       data: {
         affiliateId: affiliate.id,
         referralId: referral.id,
-        eventType,
+        eventType: 'SIGNUP',
         amountCents,
         currency: 'USD',
         status: 'PENDING',
