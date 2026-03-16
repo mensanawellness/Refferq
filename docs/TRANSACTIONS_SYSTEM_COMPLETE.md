@@ -26,19 +26,19 @@ This document describes the complete flow from Lead → Transaction → Commissi
           ↓
 3. CUSTOMER MAKES PAYMENT
    ├─ Admin creates Transaction
-   ├─ Amount: ₹10,000
+   ├─ Amount: $10,000
    └─ Transaction stored in database
           ↓
 4. SYSTEM CALCULATES COMMISSION
    ├─ Gets affiliate's partner group
    ├─ Commission Rate: 25% (from partner group)
-   ├─ Calculates: ₹10,000 × 0.25 = ₹2,500
+   ├─ Calculates: $10,000 × 0.25 = $2,500
    └─ Stores commission with transaction
           ↓
 5. COMMISSION APPEARS IN TABS
-   ├─ Customer → Transactions Tab: Shows ₹10,000 payment
-   ├─ Customer → Commissions Tab: Shows ₹2,500 commission
-   ├─ Partner → Commissions Tab: Shows ₹2,500 earned
+   ├─ Customer → Transactions Tab: Shows $10,000 payment
+   ├─ Customer → Commissions Tab: Shows $2,500 commission
+   ├─ Partner → Commissions Tab: Shows $2,500 earned
    └─ Admin Dashboard: Updates totals
           ↓
 6. ADMIN GENERATES PAYOUT
@@ -71,8 +71,8 @@ CREATE TABLE transactions (
   customer_id       TEXT,                  -- Optional customer/subscription ID
   customer_name     TEXT NOT NULL,
   customer_email    TEXT NOT NULL,
-  amount_cents      INTEGER NOT NULL,      -- Transaction amount (₹10,000 = 1,000,000 cents)
-  commission_cents  INTEGER NOT NULL,      -- Commission amount (₹2,500 = 250,000 cents)
+  amount_cents      INTEGER NOT NULL,      -- Transaction amount ($10,000 = 1,000,000 cents)
+  commission_cents  INTEGER NOT NULL,      -- Commission amount ($2,500 = 250,000 cents)
   commission_rate   FLOAT NOT NULL,        -- Rate used (0.25 = 25%)
   status            TEXT NOT NULL,         -- PENDING, COMPLETED, REFUNDED, FAILED
   description       TEXT,                  -- Optional notes
@@ -120,8 +120,8 @@ model Referral {
       "customerId": "sub_456",
       "customerName": "John Doe",
       "customerEmail": "john@example.com",
-      "amountCents": 1000000,           // ₹10,000
-      "commissionCents": 250000,         // ₹2,500 (25%)
+      "amountCents": 1000000,           // $10,000
+      "commissionCents": 250000,         // $2,500 (25%)
       "commissionRate": 0.25,
       "status": "COMPLETED",
       "description": "Monthly subscription",
@@ -156,7 +156,7 @@ model Referral {
 ```json
 {
   "referralId": "ref_789",             // Required: Which lead converted
-  "amount": 10000,                      // Required: Transaction amount (₹10,000)
+  "amount": 10000,                      // Required: Transaction amount ($10,000)
   "description": "Monthly subscription", // Optional
   "invoiceId": "INV-001",              // Optional
   "paymentMethod": "Credit Card",       // Optional
@@ -247,11 +247,11 @@ const commissionCents = Math.floor(amountCents * commissionRate);
 
 | Transaction | Partner Group | Rate | Commission |
 |------------|---------------|------|------------|
-| ₹10,000 | Default | 20% | ₹2,000 |
-| ₹10,000 | Premium | 25% | ₹2,500 |
-| ₹10,000 | Enterprise | 30% | ₹3,000 |
-| ₹5,000 | Premium | 25% | ₹1,250 |
-| ₹25,000 | Enterprise | 30% | ₹7,500 |
+| $10,000 | Default | 20% | $2,000 |
+| $10,000 | Premium | 25% | $2,500 |
+| $10,000 | Enterprise | 30% | $3,000 |
+| $5,000 | Premium | 25% | $1,250 |
+| $25,000 | Enterprise | 30% | $7,500 |
 
 ---
 
@@ -272,11 +272,11 @@ const commissionCents = Math.floor(amountCents * commissionRate);
 │ ├─────────────────────────────────────────────────┤   │
 │ │ Date       | Amount    | Commission | Status   │   │
 │ ├─────────────────────────────────────────────────┤   │
-│ │ Oct 13     | ₹10,000   | ₹2,500     | Completed│   │
-│ │ Oct 10     | ₹8,000    | ₹2,000     | Completed│   │
+│ │ Oct 13     | $10,000   | $2,500     | Completed│   │
+│ │ Oct 10     | $8,000    | $2,000     | Completed│   │
 │ └─────────────────────────────────────────────────┘   │
 │                                                         │
-│ Total Paid: ₹18,000  |  Total Commission: ₹4,500      │
+│ Total Paid: $18,000  |  Total Commission: $4,500      │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -295,12 +295,12 @@ const commissionCents = Math.floor(amountCents * commissionRate);
 │ ├─────────────────────────────────────────────────┤   │
 │ │ Date   | Customer   | Amount  | Status  | Action│   │
 │ ├─────────────────────────────────────────────────┤   │
-│ │ Oct 13 | John Doe   | ₹2,500  | Pending | □     │   │
-│ │ Oct 10 | Jane Smith | ₹2,000  | Pending | □     │   │
-│ │ Oct 08 | Mike Johnson| ₹3,000 | Paid    | ✓     │   │
+│ │ Oct 13 | John Doe   | $2,500  | Pending | □     │   │
+│ │ Oct 10 | Jane Smith | $2,000  | Pending | □     │   │
+│ │ Oct 08 | Mike Johnson| $3,000 | Paid    | ✓     │   │
 │ └─────────────────────────────────────────────────┘   │
 │                                                         │
-│ Pending: ₹4,500  |  Paid: ₹3,000  |  Total: ₹7,500   │
+│ Pending: $4,500  |  Paid: $3,000  |  Total: $7,500   │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -322,7 +322,7 @@ POST /api/admin/transactions
 
 **Expected Result:**
 - ✅ Transaction created with status COMPLETED
-- ✅ Commission calculated (₹10,000 × 25% = ₹2,500)
+- ✅ Commission calculated ($10,000 × 25% = $2,500)
 - ✅ Conversion record created
 - ✅ Transaction appears in customer's Transactions tab
 - ✅ Commission appears in customer's Commissions tab
@@ -336,8 +336,8 @@ FROM transactions
 WHERE id = 'txn_123';
 
 -- Expected:
--- amount_cents: 1000000 (₹10,000)
--- commission_cents: 250000 (₹2,500)
+-- amount_cents: 1000000 ($10,000)
+-- commission_cents: 250000 ($2,500)
 -- commission_rate: 0.25 (25%)
 ```
 
@@ -349,7 +349,7 @@ POST /api/admin/transactions
   "referralId": "ref_aff_a",
   "amount": 10000
 }
-# Expected commission: ₹2,000
+# Expected commission: $2,000
 
 # Affiliate B (Premium group - 25%)
 POST /api/admin/transactions
@@ -357,7 +357,7 @@ POST /api/admin/transactions
   "referralId": "ref_aff_b",
   "amount": 10000
 }
-# Expected commission: ₹2,500
+# Expected commission: $2,500
 
 # Affiliate C (Enterprise group - 30%)
 POST /api/admin/transactions
@@ -365,7 +365,7 @@ POST /api/admin/transactions
   "referralId": "ref_aff_c",
   "amount": 10000
 }
-# Expected commission: ₹3,000
+# Expected commission: $3,000
 ```
 
 ### 4. Test UI Tabs
@@ -413,7 +413,7 @@ const handleCreateTransaction = async () => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       referralId: customer.referralId,
-      amount: transactionAmount,  // ₹10,000
+      amount: transactionAmount,  // $10,000
       description: transactionDescription,
       invoiceId: invoiceNumber,
       paymentMethod: selectedPaymentMethod,

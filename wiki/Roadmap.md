@@ -141,7 +141,7 @@ To become the **most comprehensive, developer-friendly, and feature-rich open-so
 - [x] JWT secret standardization — All 20+ routes unified to single fallback secret
 
 ### Bug Fixes (HIGH)
-- [x] Commission rates now use partner group rates + referral metadata (was hardcoded 10%/₹100)
+- [x] Commission rates now use partner group rates + referral metadata (was hardcoded 10%/$100)
 - [x] 2 critical DELETE API handlers fixed (wrong model references)
 - [x] PrismaClient singleton migration across 36 files (eliminated connection leaks)
 - [x] Invoice delete functionality added to admin UI

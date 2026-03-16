@@ -33,14 +33,14 @@ We fixed this in **3 places**: Frontend (2x) + API (3x)
 
 **Line 195 - Dashboard Recent Referrals:**
 ```diff
-- ₹{(ref.estimatedValue || 0).toFixed(2)}
-+ ₹{(Number(ref.estimatedValue) || 0).toFixed(2)}
+- ${(ref.estimatedValue || 0).toFixed(2)}
++ ${(Number(ref.estimatedValue) || 0).toFixed(2)}
 ```
 
 **Line 300 - Referrals Page:**
 ```diff
-- ₹{(ref.estimatedValue || 0).toFixed(2)}
-+ ₹{(Number(ref.estimatedValue) || 0).toFixed(2)}
+- ${(ref.estimatedValue || 0).toFixed(2)}
++ ${(Number(ref.estimatedValue) || 0).toFixed(2)}
 ```
 
 ### 2. API - Affiliate Profile (src/app/api/affiliate/profile/route.ts)
@@ -145,7 +145,7 @@ API returns: estimatedValue: 5000 (number)
          ↓
 Frontend: Number(5000).toFixed(2) → "5000.00"
          ↓
-✅ Displays: ₹5000.00
+✅ Displays: $5000.00
 ```
 
 ---
@@ -160,7 +160,7 @@ Frontend: Number(5000).toFixed(2) → "5000.00"
    - Email: john@example.com
    - **Estimated Value: 5000**
 4. Click Submit
-5. **Expected:** Lead appears in table with `₹5000.00` ✅
+5. **Expected:** Lead appears in table with `$5000.00` ✅
 6. **Expected:** No console errors ✅
 
 ### Test 2: View Dashboard
@@ -174,7 +174,7 @@ Frontend: Number(5000).toFixed(2) → "5000.00"
 1. Click "Referrals" in sidebar
 2. View all referrals
 3. **Expected:** Estimated values show in "Est. Value" column ✅
-4. **Expected:** Values formatted as currency (₹X,XXX.00) ✅
+4. **Expected:** Values formatted as currency ($X,XXX.00) ✅
 
 ### Test 4: Admin Dashboard (NEW)
 1. Logout and login as admin
@@ -184,7 +184,7 @@ Frontend: Number(5000).toFixed(2) → "5000.00"
 
 ### Test 5: Old Referrals (No Estimated Value)
 1. View referrals created before this feature
-2. **Expected:** Shows `₹0.00` for old referrals without estimated value ✅
+2. **Expected:** Shows `$0.00` for old referrals without estimated value ✅
 3. **Expected:** No crashes or errors ✅
 
 ---

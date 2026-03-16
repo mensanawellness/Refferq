@@ -345,7 +345,7 @@ export default function ReferralsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Estimated Deal Size (₹) *</Label>
+              <Label>Estimated Deal Size ($) *</Label>
               <Input
                 type="number"
                 required

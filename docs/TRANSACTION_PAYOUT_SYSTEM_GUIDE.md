@@ -57,7 +57,7 @@ Displays:
 #### 2️⃣ **Transactions Tab**
 Shows all payment transactions with:
 - Date (payment date or creation date)
-- Amount (in ₹)
+- Amount (in $)
 - Commission (calculated amount + rate %)
 - Status (COMPLETED, PENDING, REFUNDED, FAILED)
 - Payment Method
@@ -76,7 +76,7 @@ Lists all commissions generated from transactions:
 
 1. Click **"Create Transaction"** button in Transactions tab
 2. Fill in the form:
-   - **Amount** (₹) - Required (e.g., 10000.00)
+   - **Amount** ($) - Required (e.g., 10000.00)
    - **Description** - Optional (e.g., "Monthly subscription payment")
    - **Invoice ID** - Optional (e.g., "INV-001")
    - **Payment Method** - Dropdown (Credit Card, UPI, Bank Transfer, etc.)
@@ -106,13 +106,13 @@ Commission Appears as PENDING
 ### Example
 
 **Input:**
-- Amount: ₹10,000
+- Amount: $10,000
 - Customer referred by: Alice (Partner Group: Premium - 25%)
 
 **Output:**
-- Transaction: ₹10,000 (COMPLETED)
-- Commission: ₹2,500 (PENDING)
-- Alice earns: ₹2,500 pending payout
+- Transaction: $10,000 (COMPLETED)
+- Commission: $2,500 (PENDING)
+- Alice earns: $2,500 pending payout
 
 ---
 
@@ -187,12 +187,12 @@ Affiliate Sees Payout in Dashboard
 ### Example
 
 **Selected Commissions:**
-1. Customer A - ₹2,500 (25% of ₹10,000)
-2. Customer B - ₹3,000 (30% of ₹10,000)
-3. Customer C - ₹2,000 (20% of ₹10,000)
+1. Customer A - $2,500 (25% of $10,000)
+2. Customer B - $3,000 (30% of $10,000)
+3. Customer C - $2,000 (20% of $10,000)
 
 **Payout Created:**
-- Total Amount: ₹7,500
+- Total Amount: $7,500
 - Commission Count: 3
 - Status: PENDING
 - Method: Bank Transfer
@@ -388,7 +388,7 @@ Fetch affiliate's own payouts
 4. **Navigate to Transactions Tab**
 5. **Click "Create Transaction"**
 6. **Fill Form:**
-   - Amount: ₹10,000
+   - Amount: $10,000
    - Description: Test payment
    - Payment Method: Credit Card
 7. **Submit**
@@ -429,7 +429,7 @@ Fetch affiliate's own payouts
 
 ### Issue: Commission Not Calculated
 
-**Problem:** Transaction created but commission is ₹0
+**Problem:** Transaction created but commission is $0
 
 **Solutions:**
 1. Check if affiliate has a partner group assigned
@@ -459,7 +459,7 @@ Fetch affiliate's own payouts
 
 ### Issue: Affiliate Not Seeing Earnings
 
-**Problem:** Affiliate dashboard shows ₹0.00
+**Problem:** Affiliate dashboard shows $0.00
 
 **Solutions:**
 1. Verify commissions were created (check admin side)
@@ -489,8 +489,8 @@ model Transaction {
   affiliateId      String
   customerName     String
   customerEmail    String
-  amountCents      Int               // ₹10,000 = 1,000,000
-  commissionCents  Int               // ₹2,500 = 250,000
+  amountCents      Int               // $10,000 = 1,000,000
+  commissionCents  Int               // $2,500 = 250,000
   commissionRate   Float             // 0.25 = 25%
   status           TransactionStatus // PENDING, COMPLETED, REFUNDED, FAILED
   description      String?

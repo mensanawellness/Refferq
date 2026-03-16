@@ -22,7 +22,7 @@ This release delivers critical security fixes, eliminates PrismaClient connectio
 
 ### 🐛 Bug Fixes (HIGH)
 
-- **Commission Rates** — Referral approval now uses `partnerGroup.commissionRate` and `metadata.estimated_value` instead of hardcoded 10%/₹100 values
+- **Commission Rates** — Referral approval now uses `partnerGroup.commissionRate` and `metadata.estimated_value` instead of hardcoded 10%/$100 values
 - **DELETE API Bugs** — Fixed 2 critical DELETE handlers that crashed with `prisma.undefined.delete()` due to wrong model references
 - **PrismaClient Singleton** — Migrated 36 files from `new PrismaClient()` to shared singleton import, eliminating connection pool exhaustion in production
 - **Invoice Delete** — Added missing delete functionality to admin invoices page (Trash2 icon + confirmation dialog)
@@ -100,7 +100,7 @@ This release delivers critical security fixes, eliminates PrismaClient connectio
 - JWT authentication verified: login, OTP, and all admin/affiliate routes
 - 28 database models verified with record counts
 - 1 admin user (ACTIVE), 102 active affiliates, 69 pending affiliates
-- Currency: INR (₹) with cents-based storage throughout
+- Currency: INR ($) with cents-based storage throughout
 - All passwords verified as properly hashed (bcrypt)
 - No orphaned records, no duplicate referral codes, no negative balances
 
@@ -212,7 +212,7 @@ This release delivers a complete UI redesign using the shadcn/ui component libra
 ### 🔧 Technical
 - Zero TypeScript errors (`npx tsc --noEmit` passes cleanly)
 - All existing functionality preserved — no breaking changes
-- Currency remains INR (₹) with cents-based storage
+- Currency remains INR ($) with cents-based storage
 - New `src/lib/rate-limit.ts` library with `withRateLimit` middleware helper
 - Admin sidebar updated with API Keys and API Analytics navigation items
 - 5 new Prisma models synced to database via `prisma db push`

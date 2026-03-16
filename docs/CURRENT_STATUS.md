@@ -11,7 +11,7 @@
 ### Before:
 - ❌ 14 TypeScript compilation errors
 - ❌ Prisma types not recognized
-- ❌ Admin dashboard showing ₹0.00
+- ❌ Admin dashboard showing $0.00
 - ❌ Hardcoded 20% commission rate
 
 ### After:
@@ -70,19 +70,19 @@ PARTNER GROUP COMMISSION SYSTEM
 
 3. Affiliate submits Lead
    ├─ Lead info: name, email
-   ├─ Estimated Value: ₹10,000
+   ├─ Estimated Value: $10,000
    └─ Status: PENDING
 
 4. System Calculates Commission
    ├─ Looks up partner group
    ├─ Gets commission rate: 25%
-   ├─ Calculates: ₹10,000 × 0.25 = ₹2,500
+   ├─ Calculates: $10,000 × 0.25 = $2,500
    └─ Stores for admin review
 
 5. Admin Dashboard Shows
-   ├─ Total Estimated Revenue: ₹10,000
-   ├─ Total Commission Owed: ₹2,500
-   └─ Actual Revenue: ₹0 (not paid yet)
+   ├─ Total Estimated Revenue: $10,000
+   ├─ Total Commission Owed: $2,500
+   └─ Actual Revenue: $0 (not paid yet)
 
 6. Admin Approves Lead
    └─ Status: PENDING → APPROVED
@@ -141,9 +141,9 @@ created_at    TIMESTAMP
 {
   "success": true,
   "stats": {
-    "totalRevenue": 3000000,           // ₹30,000 (actual transactions)
-    "totalEstimatedRevenue": 5000000,  // ₹50,000 (all leads)
-    "totalEstimatedCommission": 1000000, // ₹10,000 (to affiliates)
+    "totalRevenue": 3000000,           // $30,000 (actual transactions)
+    "totalEstimatedRevenue": 5000000,  // $50,000 (all leads)
+    "totalEstimatedCommission": 1000000, // $10,000 (to affiliates)
     "totalAffiliates": 25,
     "pendingReferrals": 5
   }
@@ -184,7 +184,7 @@ created_at    TIMESTAMP
 - [ ] Admin sees lead in referrals with commission rate
 - [ ] Commission calculated based on partner group
 - [ ] Different partner groups have different rates
-- [ ] Currency displays correctly (₹X,XXX.XX)
+- [ ] Currency displays correctly ($X,XXX.XX)
 
 ### API Testing:
 ```bash

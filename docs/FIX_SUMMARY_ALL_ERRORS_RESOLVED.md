@@ -306,7 +306,7 @@ if (statsData.success) {
   <div>
     <div className="text-sm text-gray-600 mb-2">Total estimated revenue</div>
     <div className="text-3xl font-bold text-gray-900">
-      ₹{stats ? (stats.totalEstimatedRevenue / 100).toFixed(2) : '0.00'}
+      ${stats ? (stats.totalEstimatedRevenue / 100).toFixed(2) : '0.00'}
     </div>
     <div className="text-xs text-gray-500 mt-1">From all affiliate leads</div>
   </div>
@@ -315,7 +315,7 @@ if (statsData.success) {
   <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6">
     <div className="text-sm text-gray-600">Actual revenue (transactions)</div>
     <div className="text-3xl font-bold text-green-900">
-      ₹{stats ? (stats.totalRevenue / 100).toFixed(2) : '0.00'}
+      ${stats ? (stats.totalRevenue / 100).toFixed(2) : '0.00'}
     </div>
     <div className="text-xs text-gray-500 mt-2">Confirmed customer payments</div>
   </div>
@@ -324,7 +324,7 @@ if (statsData.success) {
   <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6">
     <div className="text-sm text-gray-600">Total commission owed</div>
     <div className="text-3xl font-bold text-blue-900">
-      ₹{stats ? (stats.totalEstimatedCommission / 100).toFixed(2) : '0.00'}
+      ${stats ? (stats.totalEstimatedCommission / 100).toFixed(2) : '0.00'}
     </div>
     <div className="text-xs text-gray-500 mt-2">To be paid to affiliates</div>
   </div>
@@ -376,7 +376,7 @@ const count = await prisma.affiliate.count({
 ### Before Fixes:
 ```
 ❌ 14 TypeScript errors
-❌ Admin dashboard shows ₹0.00 for all stats
+❌ Admin dashboard shows $0.00 for all stats
 ❌ Commission rates hardcoded at 20%
 ❌ No partner group integration
 ```
@@ -407,7 +407,7 @@ const count = await prisma.affiliate.count({
           ↓
           
 3. AFFILIATE SUBMITS LEAD
-   ├─ Estimated Value: ₹10,000
+   ├─ Estimated Value: $10,000
    ├─ Stored in referral.metadata
    └─ Status: PENDING
           ↓
@@ -415,7 +415,7 @@ const count = await prisma.affiliate.count({
 4. ADMIN DASHBOARD CALCULATES
    ├─ Fetches referral with affiliate
    ├─ Looks up partner group for commission rate
-   ├─ Calculates: ₹10,000 × 0.25 = ₹2,500 commission
+   ├─ Calculates: $10,000 × 0.25 = $2,500 commission
    └─ Displays in admin home dashboard ✅
           ↓
           
@@ -425,7 +425,7 @@ const count = await prisma.affiliate.count({
           ↓
           
 6. AFFILIATE SEES COMMISSION
-   └─ Dashboard shows ₹2,500 earned ✅
+   └─ Dashboard shows $2,500 earned ✅
 ```
 
 ---

@@ -111,7 +111,7 @@ const commissionInCents = Math.floor(valueInCents * (commissionRate / 100));  //
 │ ┌───────────────────────────────────────────┐          │
 │ │ Customer: John Doe                        │          │
 │ │ Email: john@example.com                   │          │
-│ │ Estimated Value: ₹10,000                  │          │
+│ │ Estimated Value: $10,000                  │          │
 │ └───────────────────────────────────────────┘          │
 └─────────────────────────────────────────────────────────┘
                          ↓
@@ -120,7 +120,7 @@ const commissionInCents = Math.floor(valueInCents * (commissionRate / 100));  //
 ├─────────────────────────────────────────────────────────┤
 │ • Looks up Bob's Partner Group: "Premium"               │
 │ • Gets commission rate: 25%                             │
-│ • Calculates: ₹10,000 × 0.25 = ₹2,500                  │
+│ • Calculates: $10,000 × 0.25 = $2,500                  │
 │ • Stores in cents: 1,000,000 cents (paid)               │
 │                    250,000 cents (commission)           │
 └─────────────────────────────────────────────────────────┘
@@ -131,7 +131,7 @@ const commissionInCents = Math.floor(valueInCents * (commissionRate / 100));  //
 │ Customers Table:                                         │
 │ ┌────────────────────────────────────────────────────┐ │
 │ │ Customer  | Partner | Total Paid | Total Commission│ │
-│ │ John Doe  | Bob     | ₹10,000.00 | ₹2,500.00      │ │
+│ │ John Doe  | Bob     | $10,000.00 | $2,500.00      │ │
 │ └────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -144,25 +144,25 @@ const commissionInCents = Math.floor(valueInCents * (commissionRate / 100));  //
 
 | Affiliate | Partner Group | Rate | Estimated Value | Commission |
 |-----------|--------------|------|----------------|-----------|
-| Alice | Default | 20% | ₹10,000 | **₹2,000** |
-| Bob | Premium | 25% | ₹10,000 | **₹2,500** |
-| Carol | Enterprise | 30% | ₹10,000 | **₹3,000** |
+| Alice | Default | 20% | $10,000 | **$2,000** |
+| Bob | Premium | 25% | $10,000 | **$2,500** |
+| Carol | Enterprise | 30% | $10,000 | **$3,000** |
 
 ### Scenario B: Same Affiliate, Different Values
 
 | Affiliate | Partner Group | Rate | Estimated Value | Commission |
 |-----------|--------------|------|----------------|-----------|
-| Bob | Premium | 25% | ₹5,000 | **₹1,250** |
-| Bob | Premium | 25% | ₹10,000 | **₹2,500** |
-| Bob | Premium | 25% | ₹20,000 | **₹5,000** |
+| Bob | Premium | 25% | $5,000 | **$1,250** |
+| Bob | Premium | 25% | $10,000 | **$2,500** |
+| Bob | Premium | 25% | $20,000 | **$5,000** |
 
 ### Scenario C: Affiliate Changes Groups
 
 | Timeline | Partner Group | Rate | Estimated Value | Commission |
 |----------|--------------|------|----------------|-----------|
-| Week 1 | Default | 20% | ₹10,000 | **₹2,000** |
+| Week 1 | Default | 20% | $10,000 | **$2,000** |
 | *Admin upgrades to Premium* | - | - | - | - |
-| Week 2 | Premium | 25% | ₹10,000 | **₹2,500** |
+| Week 2 | Premium | 25% | $10,000 | **$2,500** |
 
 ---
 

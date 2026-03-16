@@ -17,7 +17,7 @@ Uncaught TypeError: Cannot read properties of undefined (reading 'toFixed')
 
 The affiliate dashboard was trying to display referral estimated values using:
 ```typescript
-₹{ref.estimatedValue.toFixed(2)}
+${ref.estimatedValue.toFixed(2)}
 ```
 
 But `ref.estimatedValue` was **undefined**, causing the error when calling `.toFixed()` on undefined.
@@ -105,7 +105,7 @@ Returns mapped data:
 Frontend displays:
 (ref.estimatedValue || 0).toFixed(2)  ✅ With fallback
          ↓
-✅ SUCCESS: Shows "₹5000.00"
+✅ SUCCESS: Shows "$5000.00"
 ```
 
 ---
@@ -118,18 +118,18 @@ Frontend displays:
 
 ```diff
 // Dashboard Recent Referrals Table (Line ~195)
-- ₹{ref.estimatedValue.toFixed(2)}
-+ ₹{(ref.estimatedValue || 0).toFixed(2)}
+- ${ref.estimatedValue.toFixed(2)}
++ ${(ref.estimatedValue || 0).toFixed(2)}
 
 // Referrals Page Table (Line ~300)
-- ₹{ref.estimatedValue.toFixed(2)}
-+ ₹{(ref.estimatedValue || 0).toFixed(2)}
+- ${ref.estimatedValue.toFixed(2)}
++ ${(ref.estimatedValue || 0).toFixed(2)}
 ```
 
 **Why This Helps:**
 - If `estimatedValue` is undefined, use `0` instead
 - Prevents the TypeError from crashing the page
-- Shows `₹0.00` for referrals without estimated values
+- Shows `$0.00` for referrals without estimated values
 
 ### 2. API Data Mapping (src/app/api/affiliate/profile/route.ts)
 
@@ -197,7 +197,7 @@ return NextResponse.json({
 1. Login as affiliate user
 2. Navigate to Dashboard page
 3. **Expected:** Recent referrals table shows estimated values without errors ✅
-4. **Expected:** If no estimated value, shows `₹0.00` ✅
+4. **Expected:** If no estimated value, shows `$0.00` ✅
 
 ### 2. Test Referrals Page
 1. Click "Referrals" in sidebar
@@ -213,12 +213,12 @@ return NextResponse.json({
    - Company: Test Corp
    - Estimated Value: 5000
 3. Submit the form
-4. **Expected:** Lead appears in table with `₹5000.00` ✅
+4. **Expected:** Lead appears in table with `$5000.00` ✅
 5. **Expected:** No console errors ✅
 
 ### 4. Test Old Referrals (Without Estimated Value)
 1. Check referrals created before this fix
-2. **Expected:** Shows `₹0.00` instead of crashing ✅
+2. **Expected:** Shows `$0.00` instead of crashing ✅
 3. **Expected:** Rest of the data displays correctly ✅
 
 ---
@@ -238,8 +238,8 @@ User submits lead → Dashboard shows referrals
 ```
 User submits lead → Dashboard shows referrals
                     ↓
-                 ✅ Shows ₹5000.00 (if value exists)
-                 ✅ Shows ₹0.00 (if value missing)
+                 ✅ Shows $5000.00 (if value exists)
+                 ✅ Shows $0.00 (if value missing)
                  ✅ No errors
                  ✅ Page works perfectly
 ```

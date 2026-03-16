@@ -58,19 +58,19 @@ model PartnerGroup {
           ↓
           
 3. AFFILIATE SUBMITS LEAD
-   ├─ Estimated Value: ₹10,000
+   ├─ Estimated Value: $10,000
    └─ Status: PENDING
           ↓
           
 4. ADMIN DASHBOARD CALCULATES COMMISSION
    ├─ Fetch affiliate WITH partner group
    ├─ Get commission rate: affiliate.partnerGroup.commissionRate = 0.25
-   ├─ Calculate: ₹10,000 × 0.25 = ₹2,500
-   └─ Display: Total ₹10,000, Commission ₹2,500 ✅
+   ├─ Calculate: $10,000 × 0.25 = $2,500
+   └─ Display: Total $10,000, Commission $2,500 ✅
           ↓
           
 5. AFFILIATE SEES THEIR EARNING
-   └─ Commission: ₹2,500 (25% of ₹10,000) ✅
+   └─ Commission: $2,500 (25% of $10,000) ✅
 ```
 
 ---
@@ -156,16 +156,16 @@ const commissionInCents = Math.floor(valueInCents * commissionRate);
 ```typescript
 // Example test data:
 // Affiliate "Alice" in "Premium" group (25% commission)
-// Submits lead with estimated value ₹10,000
+// Submits lead with estimated value $10,000
 
 // Expected result:
 {
-  totalPaid: 1000000,         // ₹10,000 in cents
-  totalCommission: 250000,     // ₹2,500 (25%) in cents
+  totalPaid: 1000000,         // $10,000 in cents
+  totalCommission: 250000,     // $2,500 (25%) in cents
   
   // Display:
-  totalPaid: "₹10,000.00",
-  totalCommission: "₹2,500.00"  // ← NOT ₹2,000 (would be 20%)
+  totalPaid: "$10,000.00",
+  totalCommission: "$2,500.00"  // ← NOT $2,000 (would be 20%)
 }
 ```
 
@@ -176,22 +176,22 @@ const commissionInCents = Math.floor(valueInCents * commissionRate);
 ### Scenario 1: Default Commission (20%)
 ```
 Given: Affiliate NOT assigned to any partner group (partnerGroupId = NULL)
-When: Affiliate submits lead with ₹5,000 estimated value
-Then: Commission should be ₹1,000 (20% fallback)
+When: Affiliate submits lead with $5,000 estimated value
+Then: Commission should be $1,000 (20% fallback)
 ```
 
 ### Scenario 2: Premium Commission (25%)
 ```
 Given: Affiliate assigned to "Premium" group (commissionRate = 0.25)
-When: Affiliate submits lead with ₹10,000 estimated value
-Then: Commission should be ₹2,500 (25%)
+When: Affiliate submits lead with $10,000 estimated value
+Then: Commission should be $2,500 (25%)
 ```
 
 ### Scenario 3: Enterprise Commission (30%)
 ```
 Given: Affiliate assigned to "Enterprise" group (commissionRate = 0.30)
-When: Affiliate submits lead with ₹20,000 estimated value
-Then: Commission should be ₹6,000 (30%)
+When: Affiliate submits lead with $20,000 estimated value
+Then: Commission should be $6,000 (30%)
 ```
 
 ---
@@ -222,9 +222,9 @@ Then: Commission should be ₹6,000 (30%)
 
 | Name | Partner | **Partner Group** | Status | Total Paid | **Commission** | Actions |
 |------|---------|-------------------|--------|------------|----------------|---------|
-| John | Alice | **Premium (25%)** | Lead | ₹10,000.00 | **₹2,500.00** | ... |
-| Jane | Bob | **Default (20%)** | Active | ₹5,000.00 | **₹1,000.00** | ... |
-| Mike | Carol | **Enterprise (30%)** | Lead | ₹20,000.00 | **₹6,000.00** | ... |
+| John | Alice | **Premium (25%)** | Lead | $10,000.00 | **$2,500.00** | ... |
+| Jane | Bob | **Default (20%)** | Active | $5,000.00 | **$1,000.00** | ... |
+| Mike | Carol | **Enterprise (30%)** | Lead | $20,000.00 | **$6,000.00** | ... |
 
 ### Key Features:
 - ✅ Commission rate **comes from partner group** (not hardcoded)

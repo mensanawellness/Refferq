@@ -52,9 +52,9 @@ const commissionCents = Math.floor(amountCents * commissionRate);
 ```
 
 **Examples:**
-- ₹10,000 × 20% (Default) = ₹2,000 commission
-- ₹10,000 × 25% (Premium) = ₹2,500 commission
-- ₹10,000 × 30% (Enterprise) = ₹3,000 commission
+- $10,000 × 20% (Default) = $2,000 commission
+- $10,000 × 25% (Premium) = $2,500 commission
+- $10,000 × 30% (Enterprise) = $3,000 commission
 
 ---
 
@@ -68,7 +68,7 @@ Content-Type: application/json
 
 {
   "referralId": "ref_123",        # Required: Which lead
-  "amount": 10000,                 # Required: ₹10,000
+  "amount": 10000,                 # Required: $10,000
   "description": "Monthly payment",# Optional
   "invoiceId": "INV-001",         # Optional
   "paymentMethod": "Credit Card",  # Optional
@@ -99,8 +99,8 @@ GET /api/admin/transactions
       "id": "txn_123",
       "customerName": "John Doe",
       "customerEmail": "john@example.com",
-      "amountCents": 1000000,      // ₹10,000
-      "commissionCents": 250000,    // ₹2,500
+      "amountCents": 1000000,      // $10,000
+      "commissionCents": 250000,    // $2,500
       "commissionRate": 0.25,       // 25%
       "status": "COMPLETED",
       "affiliate": {
@@ -157,8 +157,8 @@ CREATE TABLE transactions (
   customer_id       TEXT,
   customer_name     TEXT NOT NULL,
   customer_email    TEXT NOT NULL,
-  amount_cents      INTEGER NOT NULL,      -- ₹10,000 = 1,000,000 cents
-  commission_cents  INTEGER NOT NULL,      -- ₹2,500 = 250,000 cents
+  amount_cents      INTEGER NOT NULL,      -- $10,000 = 1,000,000 cents
+  commission_cents  INTEGER NOT NULL,      -- $2,500 = 250,000 cents
   commission_rate   FLOAT NOT NULL,        -- 0.25 = 25%
   status            TEXT NOT NULL,         -- PENDING, COMPLETED, REFUNDED, FAILED
   description       TEXT,
@@ -211,7 +211,7 @@ POST /api/admin/transactions
 
 # Expected:
 # - amountCents: 1000000
-# - commissionCents: 200000 (₹2,000)
+# - commissionCents: 200000 ($2,000)
 # - commissionRate: 0.20
 ```
 
@@ -227,7 +227,7 @@ POST /api/admin/transactions
 
 # Expected:
 # - amountCents: 1000000
-# - commissionCents: 250000 (₹2,500)
+# - commissionCents: 250000 ($2,500)
 # - commissionRate: 0.25
 ```
 
@@ -275,12 +275,12 @@ prisma.transaction.findMany()  // ❌ TypeScript error
 
 | Amount | Group | Rate | Commission | Affiliate Gets |
 |--------|-------|------|------------|----------------|
-| ₹10,000 | Default | 20% | ₹2,000 | ₹2,000 |
-| ₹10,000 | Premium | 25% | ₹2,500 | ₹2,500 |
-| ₹10,000 | Enterprise | 30% | ₹3,000 | ₹3,000 |
-| ₹5,000 | Premium | 25% | ₹1,250 | ₹1,250 |
-| ₹25,000 | Enterprise | 30% | ₹7,500 | ₹7,500 |
-| ₹100,000 | Premium | 25% | ₹25,000 | ₹25,000 |
+| $10,000 | Default | 20% | $2,000 | $2,000 |
+| $10,000 | Premium | 25% | $2,500 | $2,500 |
+| $10,000 | Enterprise | 30% | $3,000 | $3,000 |
+| $5,000 | Premium | 25% | $1,250 | $1,250 |
+| $25,000 | Enterprise | 30% | $7,500 | $7,500 |
+| $100,000 | Premium | 25% | $25,000 | $25,000 |
 
 ---
 

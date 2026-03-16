@@ -22,7 +22,7 @@ Now shows:
 - Calculation: `commission = estimatedValue × (partnerGroupCommissionRate / 100)`
 - Example: 
   - Partner Group "Premium" = 25% commission
-  - Estimated Value ₹10,000 → Commission ₹2,500
+  - Estimated Value $10,000 → Commission $2,500
 
 ### 3. **Partner Groups**
 - Created by admin in **Program Settings → Partner Groups**
@@ -44,7 +44,7 @@ Now shows:
 1. AFFILIATE SUBMITS LEAD
    ├─ Name: John Doe
    ├─ Email: john@example.com
-   ├─ Estimated Value: ₹5,000
+   ├─ Estimated Value: $5,000
    └─ Status: PENDING
           ↓
           
@@ -53,14 +53,14 @@ Now shows:
           ↓
           
 3. AFFILIATE DASHBOARD
-   ├─ Referrals table shows: ₹5,000.00 ✅
+   ├─ Referrals table shows: $5,000.00 ✅
    └─ Can see their submitted leads
           ↓
           
 4. ADMIN DASHBOARD (NEW!)
    ├─ Customers table shows:
-   │  ├─ Total Paid: ₹5,000.00 ✅
-   │  └─ Total Commission: ₹1,000.00 ✅
+   │  ├─ Total Paid: $5,000.00 ✅
+   │  └─ Total Commission: $1,000.00 ✅
    └─ Can approve/reject the lead
           ↓
           
@@ -70,7 +70,7 @@ Now shows:
           ↓
           
 6. AFFILIATE SEES COMMISSION
-   └─ Dashboard updates with ₹1,000 earning ✅
+   └─ Dashboard updates with $1,000 earning ✅
 ```
 
 ---
@@ -216,12 +216,12 @@ The entire app uses **cents** (smallest currency unit) for consistency:
 
 ```typescript
 // Display code (already existed):
-₹{(customer.totalPaid / 100).toFixed(2)}        // Converts cents to rupees
-₹{(customer.totalCommission / 100).toFixed(2)}  // Converts cents to rupees
+${(customer.totalPaid / 100).toFixed(2)}        // Converts cents to rupees
+${(customer.totalCommission / 100).toFixed(2)}  // Converts cents to rupees
 
 // Example:
 // valueInCents = 500000 (500000 paise)
-// Display: 500000 / 100 = ₹5,000.00
+// Display: 500000 / 100 = $5,000.00
 ```
 
 ---
@@ -242,7 +242,7 @@ The entire app uses **cents** (smallest currency unit) for consistency:
        ↓
        
 3. Affiliate submits lead with estimated value
-   └─ Alice submits: ₹10,000
+   └─ Alice submits: $10,000
        ↓
        
 4. System looks up Alice's Partner Group
@@ -250,7 +250,7 @@ The entire app uses **cents** (smallest currency unit) for consistency:
        ↓
        
 5. Commission is calculated
-   └─ ₹10,000 × 0.25 = ₹2,500
+   └─ $10,000 × 0.25 = $2,500
 ```
 
 ### Formula:
@@ -260,22 +260,22 @@ Commission = Estimated Value × (Partner Group Commission Rate / 100)
 
 ### Examples by Partner Group:
 
-**Estimated Value: ₹10,000**
+**Estimated Value: $10,000**
 
 | Partner Group | Commission Rate | Commission Earned | Display         |
 |--------------|----------------|-------------------|-----------------|
-| Default      | 20%            | ₹2,000            | ₹2,000.00       |
-| Premium      | 25%            | ₹2,500            | ₹2,500.00       |
-| Enterprise   | 30%            | ₹3,000            | ₹3,000.00       |
-| Custom       | 15%            | ₹1,500            | ₹1,500.00       |
+| Default      | 20%            | $2,000            | $2,000.00       |
+| Premium      | 25%            | $2,500            | $2,500.00       |
+| Enterprise   | 30%            | $3,000            | $3,000.00       |
+| Custom       | 15%            | $1,500            | $1,500.00       |
 
-**Estimated Value: ₹5,000**
+**Estimated Value: $5,000**
 
 | Partner Group | Commission Rate | Commission Earned | Display         |
 |--------------|----------------|-------------------|-----------------|
-| Default      | 20%            | ₹1,000            | ₹1,000.00       |
-| Premium      | 25%            | ₹1,250            | ₹1,250.00       |
-| Enterprise   | 30%            | ₹1,500            | ₹1,500.00       |
+| Default      | 20%            | $1,000            | $1,000.00       |
+| Premium      | 25%            | $1,250            | $1,250.00       |
+| Enterprise   | 30%            | $1,500            | $1,500.00       |
 
 ### In Cents (Internal Storage):
 
@@ -283,10 +283,10 @@ All values are stored in cents (smallest currency unit) for precision:
 
 | Estimated Value | Value in Cents | Commission Rate | Commission in Cents | Commission Display |
 |----------------|----------------|-----------------|---------------------|-------------------|
-| ₹10,000        | 1,000,000      | 20%             | 200,000             | ₹2,000.00         |
-| ₹10,000        | 1,000,000      | 25%             | 250,000             | ₹2,500.00         |
-| ₹5,000         | 500,000        | 20%             | 100,000             | ₹1,000.00         |
-| ₹5,000         | 500,000        | 30%             | 150,000             | ₹1,500.00         |
+| $10,000        | 1,000,000      | 20%             | 200,000             | $2,000.00         |
+| $10,000        | 1,000,000      | 25%             | 250,000             | $2,500.00         |
+| $5,000         | 500,000        | 20%             | 100,000             | $1,000.00         |
+| $5,000         | 500,000        | 30%             | 150,000             | $1,500.00         |
 
 ---
 
@@ -295,22 +295,22 @@ All values are stored in cents (smallest currency unit) for precision:
 ### Customers Table (Admin Dashboard):
 
 **Example Scenario:**
-- Alice (Premium Group - 25% commission) submits lead: ₹10,000
-- Bob (Default Group - 20% commission) submits lead: ₹5,000
-- Carol (Enterprise Group - 30% commission) submits lead: ₹8,000
+- Alice (Premium Group - 25% commission) submits lead: $10,000
+- Bob (Default Group - 20% commission) submits lead: $5,000
+- Carol (Enterprise Group - 30% commission) submits lead: $8,000
 
 | Customer Name | Created At | Partner | Partner Group | Status | **Total Paid** | **Total Commission** | Actions |
 |--------------|------------|---------|---------------|---------|----------------|---------------------|---------|
-| John Doe | Jan 15, 2025 | Alice | Premium (25%) | Lead | **₹10,000.00** | **₹2,500.00** | ... |
-| Jane Smith | Jan 16, 2025 | Bob | Default (20%) | Active | **₹5,000.00** | **₹1,000.00** | ... |
-| Mike Johnson | Jan 17, 2025 | Carol | Enterprise (30%) | Lead | **₹8,000.00** | **₹2,400.00** | ... |
+| John Doe | Jan 15, 2025 | Alice | Premium (25%) | Lead | **$10,000.00** | **$2,500.00** | ... |
+| Jane Smith | Jan 16, 2025 | Bob | Default (20%) | Active | **$5,000.00** | **$1,000.00** | ... |
+| Mike Johnson | Jan 17, 2025 | Carol | Enterprise (30%) | Lead | **$8,000.00** | **$2,400.00** | ... |
 
 ### Key Features:
 1. ✅ **Total Paid** column shows the estimated value submitted by affiliate
 2. ✅ **Total Commission** column shows calculated commission based on **affiliate's Partner Group rate**
 3. ✅ Different affiliates can have different commission rates
 4. ✅ Both columns are **sortable** (click column header)
-5. ✅ Values display in **currency format** (₹X,XXX.XX)
+5. ✅ Values display in **currency format** ($X,XXX.XX)
 6. ✅ Works for **PENDING**, **APPROVED**, and **REJECTED** leads
 7. ✅ Commission automatically adjusts when admin changes affiliate's Partner Group
 
@@ -335,23 +335,23 @@ All values are stored in cents (smallest currency unit) for precision:
 5. ✅ Save and verify assignments
 
 ### Test 3: Submit Leads from Different Affiliates
-1. **Affiliate 1 (Default - 20%)**: Submit lead with ₹10,000
-2. **Affiliate 2 (Premium - 25%)**: Submit lead with ₹10,000
-3. **Affiliate 3 (Enterprise - 30%)**: Submit lead with ₹10,000
+1. **Affiliate 1 (Default - 20%)**: Submit lead with $10,000
+2. **Affiliate 2 (Premium - 25%)**: Submit lead with $10,000
+3. **Affiliate 3 (Enterprise - 30%)**: Submit lead with $10,000
 4. Logout from affiliate accounts
 
 ### Test 4: View in Admin Dashboard
 1. Login as admin
 2. Go to **Customers** section
 3. ✅ Verify lead from Affiliate 1:
-   - Total Paid: **₹10,000.00**
-   - Total Commission: **₹2,000.00** (20%)
+   - Total Paid: **$10,000.00**
+   - Total Commission: **$2,000.00** (20%)
 4. ✅ Verify lead from Affiliate 2:
-   - Total Paid: **₹10,000.00**
-   - Total Commission: **₹2,500.00** (25%)
+   - Total Paid: **$10,000.00**
+   - Total Commission: **$2,500.00** (25%)
 5. ✅ Verify lead from Affiliate 3:
-   - Total Paid: **₹10,000.00**
-   - Total Commission: **₹3,000.00** (30%)
+   - Total Paid: **$10,000.00**
+   - Total Commission: **$3,000.00** (30%)
 
 ### Test 5: Sort by Commission
 1. In Customers table, click "Total Commission" column header
@@ -362,19 +362,19 @@ All values are stored in cents (smallest currency unit) for precision:
 1. Go to Partners → Select Affiliate 1
 2. Change Partner Group from "Default" to "Premium"
 3. Save changes
-4. Have Affiliate 1 submit another lead with ₹5,000
+4. Have Affiliate 1 submit another lead with $5,000
 5. Go to Customers
-6. ✅ Verify new lead shows commission: **₹1,250.00** (25%, not 20%)
+6. ✅ Verify new lead shows commission: **$1,250.00** (25%, not 20%)
 
 ### Test 7: Test with Various Amounts
 Submit leads with different estimated values:
 
 | Affiliate | Partner Group | Estimated Value | Expected Commission |
 |-----------|--------------|----------------|-------------------|
-| Alice | Default (20%) | ₹5,000 | ₹1,000.00 |
-| Bob | Premium (25%) | ₹8,000 | ₹2,000.00 |
-| Carol | Enterprise (30%) | ₹12,000 | ₹3,600.00 |
-| Dave | Default (20%) | ₹15,000 | ₹3,000.00 |
+| Alice | Default (20%) | $5,000 | $1,000.00 |
+| Bob | Premium (25%) | $8,000 | $2,000.00 |
+| Carol | Enterprise (30%) | $12,000 | $3,600.00 |
+| Dave | Default (20%) | $15,000 | $3,000.00 |
 
 ✅ Verify all commissions calculate correctly in admin dashboard
 
@@ -398,8 +398,8 @@ Submit leads with different estimated values:
 }
 
 // Display:
-totalPaid: 500000 / 100 = ₹5,000.00
-totalCommission: 100000 / 100 = ₹1,000.00
+totalPaid: 500000 / 100 = $5,000.00
+totalCommission: 100000 / 100 = $1,000.00
 ```
 
 ---
@@ -460,8 +460,8 @@ const commissionInCents = Math.floor(valueInCents * (25 / 100));  // 250,000 cen
 
 // 4. Display
 const display = {
-  totalPaid: "₹10,000.00",  // 1,000,000 / 100
-  totalCommission: "₹2,500.00"  // 250,000 / 100
+  totalPaid: "$10,000.00",  // 1,000,000 / 100
+  totalCommission: "$2,500.00"  // 250,000 / 100
 };
 ```
 
@@ -539,8 +539,8 @@ Admin Dashboard → Partners
 
 ## 🐛 Potential Issues & Solutions
 
-### Issue 1: Values Show as ₹0.00
-**Symptom:** Total Paid and Commission show ₹0.00
+### Issue 1: Values Show as $0.00
+**Symptom:** Total Paid and Commission show $0.00
 
 **Solutions:**
 1. Verify affiliate submitted estimated value
@@ -560,7 +560,7 @@ Admin Dashboard → Partners
 3. Test calculation manually:
    ```
    Commission = Estimated Value × (Commission Rate / 100)
-   Example: ₹10,000 × (25 / 100) = ₹2,500
+   Example: $10,000 × (25 / 100) = $2,500
    ```
 4. Check browser console:
    ```javascript
@@ -653,4 +653,4 @@ Admin Dashboard → Partners
 **Status:** ✅ Complete and Ready for Testing  
 **Commission System:** Dynamic (Partner Group-based)  
 **Default Commission Rate:** 20% (configurable per Partner Group)  
-**Currency Format:** Indian Rupees (₹)
+**Currency Format:** Indian Rupees ($)
