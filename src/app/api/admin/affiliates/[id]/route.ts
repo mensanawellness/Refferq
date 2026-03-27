@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { UserStatus } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-
+import { verifyAdminRequest } from '@/lib/verify-request';
 
 // Update affiliate status
 export async function PATCH(
@@ -10,18 +10,8 @@ export async function PATCH(
 ) {
   try {
     const params = await context.params;
-    const userId = request.headers.get('x-user-id')!;
-    
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    });
-
-    if (!user || user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Admin access required' },
-        { status: 403 }
-      );
-    }
+    const auth = await verifyAdminRequest(request);
+    if (!auth.success) return auth.response;
 
     const body = await request.json();
     const { status, notes } = body;
@@ -66,7 +56,7 @@ export async function PATCH(
     // Create audit log
     await prisma.auditLog.create({
       data: {
-        actorId: user.id,
+        actorId: auth.userId,
         action: 'UPDATE_AFFILIATE_STATUS',
         objectType: 'AFFILIATE',
         objectId: params.id,
@@ -88,7 +78,6 @@ export async function PATCH(
         status: updatedUser.status
       }
     });
-
   } catch (error) {
     console.error('Update affiliate status error:', error);
     return NextResponse.json(
@@ -105,18 +94,8 @@ export async function DELETE(
 ) {
   try {
     const params = await context.params;
-    const userId = request.headers.get('x-user-id')!;
-    
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    });
-
-    if (!user || user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Admin access required' },
-        { status: 403 }
-      );
-    }
+    const auth = await verifyAdminRequest(request);
+    if (!auth.success) return auth.response;
 
     // Get affiliate to find userId
     const affiliate = await prisma.affiliate.findUnique({
@@ -139,7 +118,7 @@ export async function DELETE(
     // Create audit log
     await prisma.auditLog.create({
       data: {
-        actorId: user.id,
+        actorId: auth.userId,
         action: 'DELETE_AFFILIATE',
         objectType: 'AFFILIATE',
         objectId: params.id,
@@ -155,7 +134,6 @@ export async function DELETE(
       success: true,
       message: 'Affiliate deleted successfully'
     });
-
   } catch (error) {
     console.error('Delete affiliate error:', error);
     return NextResponse.json(
