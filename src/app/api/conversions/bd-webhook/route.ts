@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { processTwoTierCommission } from "@/lib/commissions/process-two-tier";
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -22,7 +32,7 @@ export async function POST(request: NextRequest) {
     if (!expectedSecret || secret !== expectedSecret) {
       return NextResponse.json(
         { error: "Unauthorized" },
-        { status: 401 }
+        { status: 401, headers: corsHeaders }
       );
     }
 
@@ -32,7 +42,7 @@ export async function POST(request: NextRequest) {
           error: "Missing required fields",
           required: ["ref", "amount", "transaction_id", "customer_email"],
         },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -48,7 +58,7 @@ export async function POST(request: NextRequest) {
     if (existingConversion) {
       return NextResponse.json(
         { message: "Transaction already processed", conversionId: existingConversion.id },
-        { status: 200 }
+        { status: 200, headers: corsHeaders }
       );
     }
 
@@ -60,14 +70,14 @@ export async function POST(request: NextRequest) {
     if (!affiliate) {
       return NextResponse.json(
         { error: "Affiliate not found for ref code", ref },
-        { status: 404 }
+        { status: 404, headers: corsHeaders }
       );
     }
 
     if (affiliate.user.status !== "ACTIVE") {
       return NextResponse.json(
         { error: "Affiliate is not active" },
-        { status: 403 }
+        { status: 403, headers: corsHeaders }
       );
     }
 
@@ -118,13 +128,13 @@ export async function POST(request: NextRequest) {
             : null,
         },
       },
-      { status: 201 }
+      { status: 201, headers: corsHeaders }
     );
   } catch (error) {
     console.error("BD webhook error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }
