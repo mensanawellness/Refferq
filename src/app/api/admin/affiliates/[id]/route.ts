@@ -3,7 +3,6 @@ import { UserStatus } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { verifyAdminRequest } from '@/lib/verify-request';
 
-// Update affiliate status
 export async function PATCH(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -23,7 +22,6 @@ export async function PATCH(
       );
     }
 
-    // Validate status
     const validStatuses = ['PENDING', 'ACTIVE', 'INACTIVE', 'SUSPENDED'];
     if (!validStatuses.includes(status)) {
       return NextResponse.json(
@@ -32,7 +30,6 @@ export async function PATCH(
       );
     }
 
-    // Get affiliate to find userId
     const affiliate = await prisma.affiliate.findUnique({
       where: { id: params.id },
       include: { user: true }
@@ -45,7 +42,6 @@ export async function PATCH(
       );
     }
 
-    // Update user status
     const updatedUser = await prisma.user.update({
       where: { id: affiliate.userId },
       data: {
@@ -53,7 +49,6 @@ export async function PATCH(
       }
     });
 
-    // Create audit log
     await prisma.auditLog.create({
       data: {
         actorId: auth.userId,
@@ -87,7 +82,6 @@ export async function PATCH(
   }
 }
 
-// Delete affiliate
 export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -97,7 +91,6 @@ export async function DELETE(
     const auth = await verifyAdminRequest(request);
     if (!auth.success) return auth.response;
 
-    // Get affiliate to find userId
     const affiliate = await prisma.affiliate.findUnique({
       where: { id: params.id },
       include: { user: true }
@@ -110,12 +103,10 @@ export async function DELETE(
       );
     }
 
-    // Delete user (will cascade delete affiliate due to Prisma schema)
     await prisma.user.delete({
       where: { id: affiliate.userId }
     });
 
-    // Create audit log
     await prisma.auditLog.create({
       data: {
         actorId: auth.userId,
