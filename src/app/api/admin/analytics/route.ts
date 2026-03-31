@@ -4,17 +4,9 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = request.headers.get('x-user-id')!;
-    
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    });
-
-    if (!user || user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Admin access required' },
-        { status: 403 }
-      );
+    const { verifyAdminRequest } = await import('@/lib/verify-request');
+    const auth = await verifyAdminRequest(request);
+    if (!auth.success) return auth.response;
     }
 
     // Get date range from query params (default to last 30 days)
