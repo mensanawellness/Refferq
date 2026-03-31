@@ -157,7 +157,7 @@ export async function GET(request: NextRequest) {
     const settings = await prisma.programSettings.findFirst();
 
     // Count eligible affiliates
-    const minPayoutCents = settings?.minPayoutCents || 100000;
+    const minPayoutCents = settings?.minPayoutCents || 100;
     const eligibleCount = await prisma.affiliate.count({
       where: {
         balanceCents: { gte: minPayoutCents },
