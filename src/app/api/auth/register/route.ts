@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { emailService } from '@/lib/email';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limit: 3 registration attempts per minute per IP
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
       || request.headers.get('x-real-ip')
       || 'unknown';
@@ -18,9 +18,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { email, name, role } = body;
+    const { email, name, role, recruiterCode } = body;
 
-    // Validate required fields
     if (!email || !name) {
       return NextResponse.json(
         { success: false, message: 'Email and name are required' },
@@ -28,7 +27,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json(
@@ -37,10 +35,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // SECURITY: Never allow self-registration as admin
     const userRole = 'AFFILIATE';
 
-    // Generate a cryptographically secure random password
     const crypto = await import('crypto');
     const randomPassword = crypto.randomBytes(24).toString('base64url');
 
@@ -58,9 +54,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Send welcome email (non-blocking - don't fail registration if email fails)
+    // Link to recruiter if a valid recruiter code was provided
+    if (recruiterCode && result.user) {
+      try {
+        const recruiter = await prisma.affiliate.findUnique({
+          where: { referralCode: recruiterCode },
+          include: { user: true },
+        });
+
+        if (recruiter && recruiter.user.status === 'ACTIVE') {
+          const newAffiliate = await prisma.affiliate.findUnique({
+            where: { userId: result.user.id },
+          });
+
+          if (newAffiliate) {
+            await prisma.affiliate.update({
+              where: { id: newAffiliate.id },
+              data: { referredByAffiliateId: recruiter.id },
+            });
+            console.log(`Affiliate ${newAffiliate.id} linked to recruiter ${recruiter.id}`);
+          }
+        }
+      } catch (recruiterError) {
+        console.error('Failed to link recruiter:', recruiterError);
+      }
+    }
+
     try {
-      // Send welcome email with login URL
       const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.refferq.com'}/login`;
       await emailService.sendWelcomeEmail({
         name: result.user!.name,
@@ -69,10 +89,9 @@ export async function POST(request: NextRequest) {
         loginUrl,
         password: randomPassword,
       });
-      console.log('✅ Welcome email sent to:', result.user!.email);
+      console.log('Welcome email sent to:', result.user!.email);
     } catch (emailError) {
-      // Log email error but don't fail the registration
-      console.error('⚠️ Failed to send welcome email:', emailError);
+      console.error('Failed to send welcome email:', emailError);
     }
 
     return NextResponse.json({
