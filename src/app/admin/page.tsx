@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
@@ -24,7 +26,7 @@ import {
 } from '@/components/ui/tooltip';
 import {
   TrendingUp,
-  IndianRupee,
+  DollarSign,
   Users,
   Target,
   Clock,
@@ -36,6 +38,9 @@ import {
   CreditCard,
   Activity,
   Eye,
+  GitBranch,
+  Save,
+  Loader2,
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -68,6 +73,27 @@ interface RecentCustomer {
   createdAt: string;
 }
 
+interface TierSettings {
+  program: { tierTwoCommissionRate: number };
+  partnerGroups: {
+    id: string;
+    name: string;
+    tierOneRate: number;
+    tierTwoRate: number | null;
+    affiliateCount: number;
+    isDefault: boolean;
+  }[];
+}
+
+interface Recruiter {
+  id: string;
+  name: string;
+  email: string;
+  referralCode: string;
+  recruitCount: number;
+  tierTwoEarnings: { totalCents: number; count: number };
+}
+
 export default function AdminDashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -75,10 +101,16 @@ export default function AdminDashboardPage() {
   const [topAffiliates, setTopAffiliates] = useState<TopAffiliate[]>([]);
   const [recentCustomers, setRecentCustomers] = useState<RecentCustomer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tierSettings, setTierSettings] = useState<TierSettings | null>(null);
+  const [recruiters, setRecruiters] = useState<Recruiter[]>([]);
+  const [tierTwoRate, setTierTwoRate] = useState('');
+  const [savingTier, setSavingTier] = useState(false);
+  const [tierMessage, setTierMessage] = useState('');
 
   useEffect(() => {
     if (user && user.role === 'ADMIN') {
       fetchDashboardData();
+      fetchTierData();
     }
   }, [user]);
 
@@ -133,6 +165,51 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const fetchTierData = async () => {
+    try {
+      const [tierRes, recruiterRes] = await Promise.all([
+        fetch('/api/admin/settings/commission-tiers'),
+        fetch('/api/admin/affiliates/recruits'),
+      ]);
+
+      if (tierRes.ok) {
+        const data = await tierRes.json();
+        setTierSettings(data);
+        setTierTwoRate(data.program.tierTwoCommissionRate.toString());
+      }
+
+      if (recruiterRes.ok) {
+        const data = await recruiterRes.json();
+        setRecruiters(data.recruiters || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch tier data:', error);
+    }
+  };
+
+  const handleSaveTierRate = async () => {
+    setSavingTier(true);
+    setTierMessage('');
+    try {
+      const res = await fetch('/api/admin/settings/commission-tiers', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ programTierTwoRate: parseFloat(tierTwoRate) }),
+      });
+      if (res.ok) {
+        setTierMessage('Saved!');
+        fetchTierData();
+        setTimeout(() => setTierMessage(''), 3000);
+      } else {
+        setTierMessage('Failed to save');
+      }
+    } catch (error) {
+      setTierMessage('Failed to save');
+    } finally {
+      setSavingTier(false);
+    }
+  };
+
   if (loading) {
     return <DashboardSkeleton />;
   }
@@ -141,7 +218,7 @@ export default function AdminDashboardPage() {
     {
       title: 'Estimated Revenue',
       value: `$${stats ? (stats.totalEstimatedRevenue / 100).toFixed(2) : '0.00'}`,
-      icon: IndianRupee,
+      icon: DollarSign,
       description: 'Total projected value',
       trend: '+12%',
       trendUp: true,
@@ -181,49 +258,18 @@ export default function AdminDashboardPage() {
     : '0.0';
 
   const quickActions = [
-    {
-      title: 'Partners',
-      description: 'Manage affiliates',
-      icon: Users,
-      href: '/admin/partners',
-      color: 'text-blue-600',
-      bg: 'bg-blue-500/10',
-    },
-    {
-      title: 'Customers',
-      description: 'View referrals',
-      icon: UserCheck,
-      href: '/admin/customers',
-      color: 'text-emerald-600',
-      bg: 'bg-emerald-500/10',
-    },
-    {
-      title: 'Payouts',
-      description: 'Process payments',
-      icon: CreditCard,
-      href: '/admin/payouts',
-      color: 'text-amber-600',
-      bg: 'bg-amber-500/10',
-    },
-    {
-      title: 'Reports',
-      description: 'Analytics & insights',
-      icon: BarChart3,
-      href: '/admin/reports',
-      color: 'text-violet-600',
-      bg: 'bg-violet-500/10',
-    },
+    { title: 'Partners', description: 'Manage affiliates', icon: Users, href: '/admin/partners', color: 'text-blue-600', bg: 'bg-blue-500/10' },
+    { title: 'Customers', description: 'View referrals', icon: UserCheck, href: '/admin/customers', color: 'text-emerald-600', bg: 'bg-emerald-500/10' },
+    { title: 'Payouts', description: 'Process payments', icon: CreditCard, href: '/admin/payouts', color: 'text-amber-600', bg: 'bg-amber-500/10' },
+    { title: 'Reports', description: 'Analytics & insights', icon: BarChart3, href: '/admin/reports', color: 'text-violet-600', bg: 'bg-violet-500/10' },
   ];
 
   return (
     <TooltipProvider>
       <div className="space-y-6">
-        {/* Page Header */}
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Overview of your affiliate program performance
-          </p>
+          <p className="text-muted-foreground">Overview of your affiliate program performance</p>
         </div>
 
         {/* Primary Stat Cards */}
@@ -279,7 +325,6 @@ export default function AdminDashboardPage() {
               </div>
             </CardContent>
           </Card>
-
           <Card>
             <CardContent className="p-5">
               <div className="flex items-center gap-4">
@@ -293,7 +338,6 @@ export default function AdminDashboardPage() {
               </div>
             </CardContent>
           </Card>
-
           <Card>
             <CardContent className="p-5">
               <div className="flex items-center gap-4">
@@ -309,22 +353,118 @@ export default function AdminDashboardPage() {
                   <p className="text-sm font-bold text-emerald-600">{conversionRate}%</p>
                 </div>
               </div>
-              <Progress
-                value={parseFloat(conversionRate)}
-                className="mt-3 h-1.5 [&>div]:bg-emerald-500"
-              />
+              <Progress value={parseFloat(conversionRate)} className="mt-3 h-1.5 [&>div]:bg-emerald-500" />
             </CardContent>
           </Card>
         </div>
 
+        {/* Two-Tier Commission Settings */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <div>
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <GitBranch className="h-4 w-4 text-violet-600" />
+                Two-Tier Commissions
+              </CardTitle>
+              <CardDescription>Manage recruiter commission rates and view recruit activity</CardDescription>
+            </div>
+          </CardHeader>
+          <Separator />
+          <CardContent className="pt-4 space-y-6">
+            {/* Tier Rate Setting */}
+            <div className="flex items-end gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="tierTwoRate">Tier-Two Commission Rate (%)</Label>
+                <p className="text-xs text-muted-foreground">Percentage earned by recruiters on their recruits' sales</p>
+                <Input
+                  id="tierTwoRate"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.5"
+                  value={tierTwoRate}
+                  onChange={(e) => setTierTwoRate(e.target.value)}
+                  className="w-32"
+                />
+              </div>
+              <Button onClick={handleSaveTierRate} disabled={savingTier} size="sm">
+                {savingTier ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Save className="mr-1 h-3 w-3" />}
+                Save
+              </Button>
+              {tierMessage && (
+                <span className={`text-sm ${tierMessage === 'Saved!' ? 'text-emerald-600' : 'text-destructive'}`}>
+                  {tierMessage}
+                </span>
+              )}
+            </div>
+
+            {/* Partner Group Rates */}
+            {tierSettings && tierSettings.partnerGroups.length > 0 && (
+              <div>
+                <p className="text-sm font-medium mb-2">Partner Group Rates</p>
+                <div className="rounded-lg border">
+                  <div className="grid grid-cols-4 gap-4 p-3 bg-muted/50 text-xs font-medium text-muted-foreground">
+                    <span>Group</span>
+                    <span>Tier-One Rate</span>
+                    <span>Tier-Two Rate</span>
+                    <span>Affiliates</span>
+                  </div>
+                  {tierSettings.partnerGroups.map((group) => (
+                    <div key={group.id} className="grid grid-cols-4 gap-4 p-3 border-t text-sm">
+                      <span className="font-medium">{group.name} {group.isDefault && <Badge variant="secondary" className="ml-1 text-[10px]">Default</Badge>}</span>
+                      <span>{group.tierOneRate}%</span>
+                      <span>{group.tierTwoRate !== null ? `${group.tierTwoRate}%` : `${tierTwoRate}% (program default)`}</span>
+                      <span className="text-muted-foreground">{group.affiliateCount}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Active Recruiters */}
+            <div>
+              <p className="text-sm font-medium mb-2">Active Recruiters</p>
+              {recruiters.length > 0 ? (
+                <div className="space-y-1">
+                  {recruiters.map((recruiter) => (
+                    <div
+                      key={recruiter.id}
+                      className="flex items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-muted/50 cursor-pointer"
+                      onClick={() => router.push(`/admin/partners/${recruiter.id}`)}
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-violet-500/10 text-violet-600 text-xs font-semibold">
+                          {recruiter.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{recruiter.name}</p>
+                        <p className="text-xs text-muted-foreground">{recruiter.email}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-sm font-semibold">{recruiter.recruitCount} recruits</p>
+                        <p className="text-xs text-emerald-600">
+                          ${(recruiter.tierTwoEarnings.totalCents / 100).toFixed(2)} earned
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <GitBranch className="h-8 w-8 text-muted-foreground/40 mb-2" />
+                  <p className="text-sm text-muted-foreground">No recruiters yet</p>
+                  <p className="text-xs text-muted-foreground/70 mt-1">Affiliates who recruit other affiliates will appear here</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Quick Actions */}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {quickActions.map((action) => (
-            <Card
-              key={action.title}
-              className="group cursor-pointer transition-all hover:shadow-md hover:border-primary/20"
-              onClick={() => router.push(action.href)}
-            >
+            <Card key={action.title} className="group cursor-pointer transition-all hover:shadow-md hover:border-primary/20" onClick={() => router.push(action.href)}>
               <CardContent className="flex items-center gap-3 p-4">
                 <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${action.bg}`}>
                   <action.icon className={`h-5 w-5 ${action.color}`} />
@@ -349,8 +489,7 @@ export default function AdminDashboardPage() {
                 <CardDescription>Best performing affiliates</CardDescription>
               </div>
               <Button variant="ghost" size="sm" className="text-xs" onClick={() => router.push('/admin/partners')}>
-                View all
-                <ArrowRight className="ml-1 h-3 w-3" />
+                View all <ArrowRight className="ml-1 h-3 w-3" />
               </Button>
             </CardHeader>
             <Separator />
@@ -358,18 +497,10 @@ export default function AdminDashboardPage() {
               {topAffiliates.length > 0 ? (
                 <div className="space-y-1">
                   {topAffiliates.map((affiliate: any, index: number) => (
-                    <div
-                      key={affiliate.id}
-                      className="flex items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-muted/50 cursor-pointer"
-                      onClick={() => router.push(`/admin/partners/${affiliate.id}`)}
-                    >
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
-                        {index + 1}
-                      </span>
+                    <div key={affiliate.id} className="flex items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-muted/50 cursor-pointer" onClick={() => router.push(`/admin/partners/${affiliate.id}`)}>
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">{index + 1}</span>
                       <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-                          {affiliate.name.charAt(0).toUpperCase()}
-                        </AvatarFallback>
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">{affiliate.name.charAt(0).toUpperCase()}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{affiliate.name}</p>
@@ -383,11 +514,7 @@ export default function AdminDashboardPage() {
                   ))}
                 </div>
               ) : (
-                <EmptyState
-                  icon={Users}
-                  title="No partners yet"
-                  description="Partners will appear here once they join"
-                />
+                <EmptyState icon={Users} title="No partners yet" description="Partners will appear here once they join" />
               )}
             </CardContent>
           </Card>
@@ -400,8 +527,7 @@ export default function AdminDashboardPage() {
                 <CardDescription>Latest referred customers</CardDescription>
               </div>
               <Button variant="ghost" size="sm" className="text-xs" onClick={() => router.push('/admin/customers')}>
-                View all
-                <ArrowRight className="ml-1 h-3 w-3" />
+                View all <ArrowRight className="ml-1 h-3 w-3" />
               </Button>
             </CardHeader>
             <Separator />
@@ -409,15 +535,9 @@ export default function AdminDashboardPage() {
               {recentCustomers.length > 0 ? (
                 <div className="space-y-1">
                   {recentCustomers.slice(0, 5).map((customer) => (
-                    <div
-                      key={customer.id}
-                      className="flex items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-muted/50"
-                    >
+                    <div key={customer.id} className="flex items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-muted/50">
                       <p className="text-[11px] text-muted-foreground w-12 shrink-0 text-center">
-                        {new Date(customer.createdAt).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                        })}
+                        {new Date(customer.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </p>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{customer.leadEmail}</p>
@@ -428,11 +548,7 @@ export default function AdminDashboardPage() {
                   ))}
                 </div>
               ) : (
-                <EmptyState
-                  icon={UserCheck}
-                  title="No customers yet"
-                  description="Referred customers will appear here"
-                />
+                <EmptyState icon={UserCheck} title="No customers yet" description="Referred customers will appear here" />
               )}
             </CardContent>
           </Card>
@@ -449,12 +565,7 @@ function StatusBadge({ status }: { status: string }) {
     REJECTED: { variant: 'destructive', label: 'Rejected' },
   };
   const { variant, label } = config[status] || { variant: 'secondary' as const, label: status };
-
-  return (
-    <Badge variant={variant} className="text-[10px] font-medium px-2 py-0.5">
-      {label}
-    </Badge>
-  );
+  return <Badge variant={variant} className="text-[10px] font-medium px-2 py-0.5">{label}</Badge>;
 }
 
 function EmptyState({ icon: Icon, title, description }: { icon: React.ElementType; title: string; description: string }) {
@@ -478,53 +589,12 @@ function DashboardSkeleton() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i}>
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-9 w-9 rounded-lg" />
-              </div>
-              <Skeleton className="h-8 w-32 mt-2" />
-              <Skeleton className="h-3 w-20 mt-2" />
-            </CardContent>
-          </Card>
+          <Card key={i}><CardContent className="p-5"><div className="flex items-center justify-between"><Skeleton className="h-4 w-24" /><Skeleton className="h-9 w-9 rounded-lg" /></div><Skeleton className="h-8 w-32 mt-2" /><Skeleton className="h-3 w-20 mt-2" /></CardContent></Card>
         ))}
       </div>
       <div className="grid gap-4 md:grid-cols-3">
         {Array.from({ length: 3 }).map((_, i) => (
-          <Card key={i}>
-            <CardContent className="flex items-center gap-4 p-5">
-              <Skeleton className="h-12 w-12 rounded-xl" />
-              <div>
-                <Skeleton className="h-7 w-16 mb-1" />
-                <Skeleton className="h-4 w-24" />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      <div className="grid gap-6 lg:grid-cols-2">
-        {Array.from({ length: 2 }).map((_, i) => (
-          <Card key={i}>
-            <CardHeader>
-              <Skeleton className="h-5 w-32" />
-              <Skeleton className="h-3 w-48" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {Array.from({ length: 4 }).map((_, j) => (
-                  <div key={j} className="flex items-center gap-3">
-                    <Skeleton className="h-8 w-8 rounded-full" />
-                    <div className="flex-1">
-                      <Skeleton className="h-4 w-32 mb-1" />
-                      <Skeleton className="h-3 w-20" />
-                    </div>
-                    <Skeleton className="h-4 w-16" />
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <Card key={i}><CardContent className="flex items-center gap-4 p-5"><Skeleton className="h-12 w-12 rounded-xl" /><div><Skeleton className="h-7 w-16 mb-1" /><Skeleton className="h-4 w-24" /></div></CardContent></Card>
         ))}
       </div>
     </div>
