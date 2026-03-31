@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-
 export async function GET(request: NextRequest) {
   try {
     const { verifyAdminRequest } = await import('@/lib/verify-request');
     const auth = await verifyAdminRequest(request);
     if (!auth.success) return auth.response;
 
-    // Get all referrals with affiliate information
     const referrals = await prisma.referral.findMany({
       include: {
         affiliate: {
@@ -21,8 +19,7 @@ export async function GET(request: NextRequest) {
         createdAt: 'desc'
       }
     });
-    
-    // Get all partner groups for commission rate lookup
+
     const partnerGroups = await prisma.partnerGroup.findMany();
     const partnerGroupMap = new Map(
       partnerGroups.map(pg => [pg.id, { name: pg.name, rate: pg.commissionRate }])
@@ -35,7 +32,7 @@ export async function GET(request: NextRequest) {
         const affiliate = referral.affiliate as any;
         const pgId = affiliate.partnerGroupId;
         const pgData = pgId ? partnerGroupMap.get(pgId) : null;
-        
+
         return {
           id: referral.id,
           leadEmail: referral.leadEmail,
@@ -58,7 +55,6 @@ export async function GET(request: NextRequest) {
         };
       })
     });
-
   } catch (error) {
     console.error('Admin referrals API error:', error);
     return NextResponse.json(
@@ -67,6 +63,7 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
 export async function POST(request: NextRequest) {
   try {
     const { verifyAdminRequest } = await import('@/lib/verify-request');
@@ -107,5 +104,11 @@ export async function POST(request: NextRequest) {
       message: `${updatedReferrals.count} referrals ${action}d successfully`,
       updatedCount: updatedReferrals.count
     });
+  } catch (error) {
+    console.error('Batch referral API error:', error);
+    return NextResponse.json(
+      { error: 'Failed to process referrals' },
+      { status: 500 }
+    );
   }
 }
