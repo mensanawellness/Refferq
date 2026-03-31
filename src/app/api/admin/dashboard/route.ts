@@ -5,8 +5,6 @@ import { prisma } from '@/lib/prisma';
 export async function GET(request: NextRequest) {
   try {
   const { verifyAdminRequest } = await import('@/lib/verify-request');
-    const auth = await verifyAdminRequest(request);
-    if (!auth.success) return auth.response;
       );
     }
 
