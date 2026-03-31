@@ -4,24 +4,9 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = request.headers.get('x-user-id')!;
-    
-    // Get user from database
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 401 }
-      );
-    }
-
-    if (user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Admin access required' },
-        { status: 403 }
+  const { verifyAdminRequest } = await import('@/lib/verify-request');
+    const auth = await verifyAdminRequest(request);
+    if (!auth.success) return auth.response;
       );
     }
 
