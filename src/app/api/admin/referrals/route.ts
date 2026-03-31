@@ -4,26 +4,9 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = request.headers.get('x-user-id')!;
-    
-    // Get user from database
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 401 }
-      );
-    }
-
-    if (user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Access denied. Admin role required.' },
-        { status: 403 }
-      );
-    }
+    const { verifyAdminRequest } = await import('@/lib/verify-request');
+    const auth = await verifyAdminRequest(request);
+    if (!auth.success) return auth.response;
 
     // Get all referrals with affiliate information
     const referrals = await prisma.referral.findMany({
@@ -84,32 +67,14 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
 export async function POST(request: NextRequest) {
   try {
-    const userId = request.headers.get('x-user-id')!;
-    
-    // Get user from database
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 401 }
-      );
-    }
-
-    if (user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Access denied. Admin role required.' },
-        { status: 403 }
-      );
-    }
+    const { verifyAdminRequest } = await import('@/lib/verify-request');
+    const auth = await verifyAdminRequest(request);
+    if (!auth.success) return auth.response;
 
     const body = await request.json();
-    const { referralIds, action } = body; // action: 'approve' | 'reject'
+    const { referralIds, action } = body;
 
     if (!referralIds || !Array.isArray(referralIds) || referralIds.length === 0) {
       return NextResponse.json(
@@ -125,7 +90,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update multiple referrals
     const updatedReferrals = await prisma.referral.updateMany({
       where: {
         id: { in: referralIds },
@@ -133,7 +97,7 @@ export async function POST(request: NextRequest) {
       },
       data: {
         status: action === 'approve' ? 'APPROVED' : 'REJECTED',
-        reviewedBy: user.id,
+        reviewedBy: auth.userId,
         reviewedAt: new Date()
       }
     });
@@ -143,12 +107,6 @@ export async function POST(request: NextRequest) {
       message: `${updatedReferrals.count} referrals ${action}d successfully`,
       updatedCount: updatedReferrals.count
     });
-
-  } catch (error) {
-    console.error('Batch referral API error:', error);
-    return NextResponse.json(
-      { error: 'Failed to process referrals' },
-      { status: 500 }
-    );
   }
 }
+  
