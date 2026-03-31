@@ -45,7 +45,7 @@ import {
   ArrowLeft,
   Users,
   Wallet,
-  IndianRupee,
+  DollarSign,
   CreditCard,
   Copy,
   ExternalLink,
@@ -287,12 +287,11 @@ export default function PartnerDetailPage() {
       prev.includes(commissionId) ? prev.filter((id) => id !== commissionId) : [...prev, commissionId]
     );
   };
-
-  const formatCurrency = (cents: number) =>
-    `\u20B9${(cents / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const formatCurrency = (cents: number) =>
+    `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+    new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
   const pendingCommissions = commissions.filter((c) => c.status === 'PENDING');
   const pendingAmount = pendingCommissions.reduce((sum, c) => sum + c.amountCents, 0);
@@ -614,7 +613,7 @@ export default function PartnerDetailPage() {
                 </Table>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <IndianRupee className="h-10 w-10 text-muted-foreground/40 mb-3" />
+                  <DollarSign className="h-10 w-10 text-muted-foreground/40 mb-3" />
                   <p className="text-sm font-medium text-muted-foreground">No commissions yet</p>
                 </div>
               )}
