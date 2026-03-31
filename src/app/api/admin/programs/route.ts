@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
         cookieDuration: cookieDuration || 30,
         currency: currency || 'INR',
         autoApprove: autoApprove || false,
-        minPayoutCents: minPayoutCents || 100000,
+        minPayoutCents: minPayoutCents || 100,
         payoutFrequency: payoutFrequency || 'MONTHLY',
         termsUrl: termsUrl || null,
         logoUrl: logoUrl || null,
