@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +27,7 @@ type Step = 'details' | 'otp' | 'success';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<Step>('details');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -34,6 +35,14 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [recruiterCode, setRecruiterCode] = useState('');
+
+  useEffect(() => {
+    const ref = searchParams.get('ref');
+    if (ref) {
+      setRecruiterCode(ref);
+    }
+  }, [searchParams]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,11 +50,10 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      // Step 1: Register the user
       const registerRes = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name, role: 'AFFILIATE' }),
+        body: JSON.stringify({ email, name, role: 'AFFILIATE', recruiterCode: recruiterCode || undefined }),
       });
 
       const registerData = await registerRes.json();
@@ -56,7 +64,6 @@ export default function RegisterPage() {
         return;
       }
 
-      // Step 2: Send OTP
       const otpRes = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -69,7 +76,6 @@ export default function RegisterPage() {
         setStep('otp');
         setMessage('Account created! A verification code has been sent to your email.');
       } else {
-        // Registration succeeded but OTP failed - still move to OTP step
         setStep('otp');
         setError(otpData.error || 'Failed to send code. Try resending.');
       }
@@ -101,7 +107,6 @@ export default function RegisterPage() {
 
       if (res.ok && data.success) {
         setStep('success');
-        // Redirect after a short delay
         setTimeout(() => {
           const user = data.user;
           if (user.role === 'ADMIN') {
@@ -147,7 +152,6 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background p-4">
       <div className="w-full max-w-md space-y-6">
-        {/* Logo */}
         <div className="text-center space-y-2">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/25">
             <Target className="h-7 w-7 text-primary-foreground" />
@@ -158,14 +162,15 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {/* Card */}
         <Card className="border-0 shadow-xl shadow-black/5">
           {step === 'details' && (
             <>
               <CardHeader className="text-center pb-4">
                 <CardTitle className="text-xl">Create your account</CardTitle>
                 <CardDescription>
-                  Join as an affiliate partner and start earning
+                  {recruiterCode
+                    ? 'You were invited by a partner. Join and start earning!'
+                    : 'Join as an affiliate partner and start earning'}
                 </CardDescription>
               </CardHeader>
               <form onSubmit={handleRegister}>
@@ -173,6 +178,11 @@ export default function RegisterPage() {
                   {error && (
                     <Alert variant="destructive">
                       <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  )}
+                  {recruiterCode && (
+                    <Alert>
+                      <AlertDescription>Referred by partner: <span className="font-mono font-medium">{recruiterCode}</span></AlertDescription>
                     </Alert>
                   )}
                   <div className="space-y-2">
@@ -333,7 +343,6 @@ export default function RegisterPage() {
           )}
         </Card>
 
-        {/* Footer */}
         {step !== 'success' && (
           <p className="text-center text-sm text-muted-foreground">
             Already have an account?{' '}
