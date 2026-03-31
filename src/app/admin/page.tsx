@@ -363,8 +363,3 @@ export default function RegisterPage() {
     </Suspense>
   );
 }
-```
-
-Also add `stripe` to `package.json`. Find the `"dependencies"` section and add:
-```
-"stripe": "^17.7.0",
