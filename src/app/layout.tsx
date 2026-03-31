@@ -13,7 +13,12 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const settings = await db.getPlatformSettings();
+  let settings = null;
+  try {
+    settings = await db.getPlatformSettings();
+  } catch {
+    // DB unavailable (e.g. during Docker build prerendering) — use defaults
+  }
 
   // Create dynamic styles based on settings
   const dynamicStyles = {
