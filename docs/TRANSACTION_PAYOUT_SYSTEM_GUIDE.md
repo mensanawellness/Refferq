@@ -76,7 +76,7 @@ Lists all commissions generated from transactions:
 
 1. Click **"Create Transaction"** button in Transactions tab
 2. Fill in the form:
-   - **Amount** ($) - Required (e.g., 10000.00)
+   - **Amount** ($) - Required (e.g., 1.00)
    - **Description** - Optional (e.g., "Monthly subscription payment")
    - **Invoice ID** - Optional (e.g., "INV-001")
    - **Payment Method** - Dropdown (Credit Card, UPI, Bank Transfer, etc.)
