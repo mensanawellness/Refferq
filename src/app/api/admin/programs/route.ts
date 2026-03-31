@@ -1,24 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-async function verifyAdmin(request: NextRequest) {
-  try {
-    const userId = request.headers.get('x-user-id');
-    if (!userId) return null;
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user || user.role !== 'ADMIN') return null;
-    return user;
-  } catch (_e) {
-    return null;
-  }
-}
-
-// GET: List all programs
 export async function GET(request: NextRequest) {
-  const user = await verifyAdmin(request);
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
   try {
+    const { verifyAdminRequest } = await import('@/lib/verify-request');
+    const auth = await verifyAdminRequest(request);
+    if (!auth.success) return auth.response;
+
     const programs = await prisma.program.findMany({
       orderBy: { createdAt: 'desc' },
     });
@@ -30,12 +18,12 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Create program
 export async function POST(request: NextRequest) {
-  const user = await verifyAdmin(request);
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
   try {
+    const { verifyAdminRequest } = await import('@/lib/verify-request');
+    const auth = await verifyAdminRequest(request);
+    if (!auth.success) return auth.response;
+
     const body = await request.json();
     const { name, slug, description, commissionRate, commissionType, cookieDuration, currency, autoApprove, minPayoutCents, payoutFrequency, termsUrl, logoUrl, brandColor } = body;
 
@@ -56,7 +44,7 @@ export async function POST(request: NextRequest) {
         commissionRate: commissionRate || 20,
         commissionType: commissionType || 'PERCENTAGE',
         cookieDuration: cookieDuration || 30,
-        currency: currency || 'INR',
+        currency: currency || 'USD',
         autoApprove: autoApprove || false,
         minPayoutCents: minPayoutCents || 100,
         payoutFrequency: payoutFrequency || 'MONTHLY',
@@ -73,12 +61,12 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT: Update program
 export async function PUT(request: NextRequest) {
-  const user = await verifyAdmin(request);
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
   try {
+    const { verifyAdminRequest } = await import('@/lib/verify-request');
+    const auth = await verifyAdminRequest(request);
+    if (!auth.success) return auth.response;
+
     const body = await request.json();
     const { id } = body;
 
@@ -86,8 +74,11 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Program ID required' }, { status: 400 });
     }
 
-    // Only allow specific fields (prevent mass assignment)
-    const allowedFields = ['name', 'description', 'commissionType', 'commissionValue', 'cookieDuration', 'isActive', 'terms'];
+    const allowedFields = [
+      'name', 'slug', 'description', 'commissionRate', 'commissionType',
+      'cookieDuration', 'currency', 'isActive', 'autoApprove',
+      'minPayoutCents', 'payoutFrequency', 'termsUrl', 'logoUrl', 'brandColor',
+    ];
     const updates: Record<string, any> = {};
     for (const key of allowedFields) {
       if (key in body && body[key] !== undefined) updates[key] = body[key];
@@ -105,12 +96,12 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// DELETE: Delete program
 export async function DELETE(request: NextRequest) {
-  const user = await verifyAdmin(request);
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
   try {
+    const { verifyAdminRequest } = await import('@/lib/verify-request');
+    const auth = await verifyAdminRequest(request);
+    if (!auth.success) return auth.response;
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
