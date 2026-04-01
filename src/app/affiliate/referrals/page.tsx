@@ -5,11 +5,13 @@ import { useAuth } from '@/hooks/useAuth';
 import {
   Card,
   CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -20,14 +22,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -37,8 +31,6 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Users,
-  Plus,
-  Loader2,
   Clock,
   CheckCircle2,
   AlertCircle,
@@ -58,62 +50,43 @@ interface Referral {
   createdAt: string;
 }
 
+interface Recruit {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+  conversionCount: number;
+  tierTwoEarned: number;
+}
+
 export default function ReferralsPage() {
   const { user, loading: authLoading } = useAuth();
   const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [recruits, setRecruits] = useState<Recruit[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showSubmitModal, setShowSubmitModal] = useState(false);
-  const [submitLoading, setSubmitLoading] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
-  const [submitForm, setSubmitForm] = useState({
-    leadName: '',
-    leadEmail: '',
-  });
 
   useEffect(() => {
-    if (!authLoading && user) fetchReferrals();
+    if (!authLoading && user) fetchData();
   }, [authLoading, user]);
 
-  const fetchReferrals = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/affiliate/referrals');
-      const data = await res.json();
-      if (data.success) setReferrals(data.referrals || []);
+      const [refRes, profileRes] = await Promise.all([
+        fetch('/api/affiliate/referrals'),
+        fetch('/api/affiliate/profile'),
+      ]);
+      const refData = await refRes.json();
+      const profileData = await profileRes.json();
+      if (refData.success) setReferrals(refData.referrals || []);
+      if (profileData.success) setRecruits(profileData.recruits || []);
     } catch (error) {
       console.error('Failed to fetch referrals:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleSubmitBusinessPartner = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitLoading(true);
-    try {
-      const res = await fetch('/api/affiliate/referrals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          lead_name: submitForm.leadName,
-          lead_email: submitForm.leadEmail,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        showNotification('success', 'Business partner submitted successfully!');
-        setShowSubmitModal(false);
-        setSubmitForm({ leadName: '', leadEmail: '' });
-        fetchReferrals();
-      } else {
-        showNotification('error', data.error || 'Failed to submit business partner');
-      }
-    } catch (_e) {
-      showNotification('error', 'An error occurred while submitting business partner');
-    } finally {
-      setSubmitLoading(false);
     }
   };
 
@@ -124,6 +97,9 @@ export default function ReferralsPage() {
 
   const formatDate = (date: string) =>
     new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+  const formatCurrency = (cents: number) =>
+    `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const getStatusBadge = (status: string) => {
     const map: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ElementType }> = {
@@ -196,18 +172,12 @@ export default function ReferralsPage() {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Referrals</h1>
-          <p className="text-muted-foreground">Track and manage your business partner submissions</p>
-        </div>
-        <Button onClick={() => setShowSubmitModal(true)} className="gap-1.5">
-          <Plus className="h-4 w-4" />
-          Submit Business Partner
-        </Button>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Referrals</h1>
+        <p className="text-muted-foreground">Track your business partner referrals and ambassador recruits</p>
       </div>
 
-      {/* Stats */}
+      {/* Business Partner Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardContent className="p-4">
@@ -235,115 +205,119 @@ export default function ReferralsPage() {
         </Card>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search by name or email..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+      {/* Business Partners Section */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Business Partner Referrals</h2>
+
+        {/* Filters */}
+        <div className="flex flex-col gap-3 sm:flex-row mb-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[160px]">
+              <Filter className="mr-2 h-4 w-4" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Status</SelectItem>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="APPROVED">Approved</SelectItem>
+              <SelectItem value="REJECTED">Rejected</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" onClick={exportCSV} className="gap-1.5">
+            <Download className="h-4 w-4" />
+            Export CSV
+          </Button>
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[160px]">
-            <Filter className="mr-2 h-4 w-4" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Status</SelectItem>
-            <SelectItem value="PENDING">Pending</SelectItem>
-            <SelectItem value="APPROVED">Approved</SelectItem>
-            <SelectItem value="REJECTED">Rejected</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button variant="outline" onClick={exportCSV} className="gap-1.5">
-          <Download className="h-4 w-4" />
-          Export CSV
-        </Button>
+
+        <Card>
+          <CardContent className="p-0">
+            {filteredReferrals.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <Users className="h-12 w-12 text-muted-foreground/40 mb-3" />
+                <p className="font-medium">No business partner referrals found</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {referrals.length === 0 ? 'Business partners you refer will appear here' : 'Try adjusting your filters'}
+                </p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Business Partner Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Company</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredReferrals.map((ref) => (
+                    <TableRow key={ref.id}>
+                      <TableCell className="font-medium">{ref.leadName}</TableCell>
+                      <TableCell className="text-muted-foreground">{ref.leadEmail}</TableCell>
+                      <TableCell className="text-muted-foreground">{ref.company || '\u2014'}</TableCell>
+                      <TableCell>{getStatusBadge(ref.status)}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{formatDate(ref.createdAt)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Table */}
-      <Card>
-        <CardContent className="p-0">
-          {filteredReferrals.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <Users className="h-12 w-12 text-muted-foreground/40 mb-3" />
-              <p className="font-medium">No referrals found</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {referrals.length === 0 ? 'Start submitting business partners to earn commissions' : 'Try adjusting your filters'}
-              </p>
-              {referrals.length === 0 && (
-                <Button className="mt-4" onClick={() => setShowSubmitModal(true)}>Submit your first business partner</Button>
-              )}
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Business Partner Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredReferrals.map((ref) => (
-                  <TableRow key={ref.id}>
-                    <TableCell className="font-medium">{ref.leadName}</TableCell>
-                    <TableCell className="text-muted-foreground">{ref.leadEmail}</TableCell>
-                    <TableCell className="text-muted-foreground">{ref.company || '\u2014'}</TableCell>
-                    <TableCell>{getStatusBadge(ref.status)}</TableCell>
-                    <TableCell className="text-muted-foreground text-sm">{formatDate(ref.createdAt)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      {/* Ambassador Recruits Section */}
+      <div>
+        <h2 className="text-lg font-semibold mb-1">Ambassador Recruits</h2>
+        <p className="text-sm text-muted-foreground mb-4">Ambassadors you have recruited via your ambassador recruiting link</p>
 
-      {/* Submit Business Partner Modal */}
-      <Dialog open={showSubmitModal} onOpenChange={setShowSubmitModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Submit Business Partner</DialogTitle>
-            <DialogDescription>
-              Enter the details below to submit a business partner.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmitBusinessPartner} className="space-y-4">
-            <div className="space-y-2">
-              <Label>Business Partner&apos;s Name *</Label>
-              <Input
-                required
-                value={submitForm.leadName}
-                onChange={(e) => setSubmitForm({ ...submitForm, leadName: e.target.value })}
-                placeholder="Full name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Contact Email *</Label>
-              <Input
-                type="email"
-                required
-                value={submitForm.leadEmail}
-                onChange={(e) => setSubmitForm({ ...submitForm, leadEmail: e.target.value })}
-                placeholder="email@example.com"
-              />
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setShowSubmitModal(false)}>Cancel</Button>
-              <Button type="submit" disabled={submitLoading}>
-                {submitLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Submit Business Partner
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+        <Card>
+          <CardContent className="p-0">
+            {recruits.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <Users className="h-12 w-12 text-muted-foreground/40 mb-3" />
+                <p className="font-medium">No ambassador recruits yet</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Ambassadors you recruit will appear here
+                </p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Date Joined</TableHead>
+                    <TableHead className="text-right">Conversions</TableHead>
+                    <TableHead className="text-right">Tier-Two Earned</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recruits.map((recruit) => (
+                    <TableRow key={recruit.id}>
+                      <TableCell className="font-medium">{recruit.name}</TableCell>
+                      <TableCell className="text-muted-foreground">{recruit.email}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{formatDate(recruit.createdAt)}</TableCell>
+                      <TableCell className="text-right">{recruit.conversionCount}</TableCell>
+                      <TableCell className="text-right font-medium">{formatCurrency(recruit.tierTwoEarned)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

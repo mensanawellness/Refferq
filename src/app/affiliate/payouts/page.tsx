@@ -46,7 +46,7 @@ export default function PayoutsPage() {
   const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState(0);
   const [currencySymbol, setCurrencySymbol] = useState('$');
-  const [minPayoutCents, setMinPayoutCents] = useState(5000);
+  const [minPayoutCents, setMinPayoutCents] = useState(100);
 
   useEffect(() => {
     if (!authLoading && user) fetchPayouts();
@@ -65,7 +65,7 @@ export default function PayoutsPage() {
       if (profileData.success) {
         setBalance(profileData.affiliate?.balanceCents || 0);
         setCurrencySymbol(profileData.currencySymbol || '$');
-        setMinPayoutCents(profileData.minPayoutCents ?? 5000);
+        setMinPayoutCents(profileData.minPayoutCents ?? 100);
       }
     } catch (error) {
       console.error('Failed to fetch payouts:', error);
@@ -225,7 +225,7 @@ export default function PayoutsPage() {
               <Wallet className="h-12 w-12 text-muted-foreground/40 mb-3" />
               <p className="font-medium">No payouts yet</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Start referring customers to earn commissions
+                Start referring business partners and recruiting ambassadors to earn commissions
               </p>
             </div>
           ) : (

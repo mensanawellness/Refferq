@@ -22,14 +22,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   MousePointerClick,
@@ -38,8 +30,6 @@ import {
   Copy,
   Check,
   Link,
-  Plus,
-  Loader2,
   Clock,
   CheckCircle2,
   AlertCircle,
@@ -94,13 +84,6 @@ export default function AffiliateDashboard() {
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [copied, setCopied] = useState<'ambassador' | 'bd' | null>(null);
 
-  const [showSubmitModal, setShowSubmitModal] = useState(false);
-  const [submitLoading, setSubmitLoading] = useState(false);
-  const [submitForm, setSubmitForm] = useState({
-    leadName: '',
-    leadEmail: '',
-  });
-
   useEffect(() => {
     if (!authLoading && user) {
       loadDashboardData();
@@ -141,37 +124,6 @@ export default function AffiliateDashboard() {
       console.error('Failed to load dashboard data:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleSubmitBusinessPartner = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitLoading(true);
-
-    try {
-      const response = await fetch('/api/affiliate/referrals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          lead_name: submitForm.leadName,
-          lead_email: submitForm.leadEmail,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        showNotification('success', 'Business partner submitted successfully! Waiting for admin approval.');
-        setShowSubmitModal(false);
-        setSubmitForm({ leadName: '', leadEmail: '' });
-        loadDashboardData();
-      } else {
-        showNotification('error', data.error || 'Failed to submit business partner');
-      }
-    } catch (_e) {
-      showNotification('error', 'An error occurred while submitting business partner');
-    } finally {
-      setSubmitLoading(false);
     }
   };
 
@@ -268,7 +220,7 @@ export default function AffiliateDashboard() {
               : 'Held for refund period'
           },
           { label: 'Total Clicks', value: stats?.totalClicks || 0, icon: MousePointerClick, color: 'text-blue-600', bg: 'bg-blue-500/10' },
-          { label: 'Total Business Partners', value: stats?.totalLeads || 0, icon: Target, color: 'text-rose-600', bg: 'bg-rose-500/10' },
+          { label: 'Business Partners Referred', value: stats?.totalLeads || 0, icon: Target, color: 'text-rose-600', bg: 'bg-rose-500/10' },
           { label: 'Conv. Rate', value: `${stats?.conversionRate?.toFixed(1) || '0.0'}%`, icon: TrendingUp, color: 'text-violet-600', bg: 'bg-violet-500/10' },
         ].map((stat, i) => (
           <motion.div
@@ -307,9 +259,9 @@ export default function AffiliateDashboard() {
       {/* BD & Network Activity */}
       <div className="grid gap-6 sm:grid-cols-3">
         {[
-          { label: 'BD Conversions', value: stats?.bdConversionsCount || 0, icon: Target, color: 'text-blue-600', bg: 'bg-blue-500/10' },
-          { label: 'Tier-Two Earnings', value: formatCurrency(stats?.tierTwoEarnings || 0), icon: TrendingUp, color: 'text-violet-600', bg: 'bg-violet-500/10' },
-          { label: 'Recruits', value: stats?.recruitsCount || 0, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-500/10' },
+          { label: 'Business Partner Conversions', value: stats?.bdConversionsCount || 0, icon: Target, color: 'text-blue-600', bg: 'bg-blue-500/10' },
+          { label: 'Ambassador Recruit Earnings', value: formatCurrency(stats?.tierTwoEarnings || 0), icon: TrendingUp, color: 'text-violet-600', bg: 'bg-violet-500/10' },
+          { label: 'Ambassador Recruits', value: stats?.recruitsCount || 0, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-500/10' },
         ].map((stat, i) => (
           <Card key={i} className="border-0 glass-card">
             <CardContent className="p-6">
@@ -495,49 +447,6 @@ export default function AffiliateDashboard() {
         </Card>
       </div>
 
-      {/* Submit Business Partner Modal */}
-      <Dialog open={showSubmitModal} onOpenChange={setShowSubmitModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Submit Business Partner</DialogTitle>
-            <DialogDescription>
-              Enter the details below to submit a business partner. Ensure all information is accurate for proper tracking.
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleSubmitBusinessPartner} className="space-y-4">
-            <div className="space-y-2">
-              <Label>Business Partner&apos;s Name *</Label>
-              <Input
-                required
-                value={submitForm.leadName}
-                onChange={(e) => setSubmitForm({ ...submitForm, leadName: e.target.value })}
-                placeholder="Full name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Contact Email *</Label>
-              <Input
-                type="email"
-                required
-                value={submitForm.leadEmail}
-                onChange={(e) => setSubmitForm({ ...submitForm, leadEmail: e.target.value })}
-                placeholder="email@example.com"
-              />
-            </div>
-
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setShowSubmitModal(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={submitLoading}>
-                {submitLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Submit Business Partner
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

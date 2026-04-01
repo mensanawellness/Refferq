@@ -42,6 +42,7 @@ interface ReportStats {
   totalLeads: number;
   totalConversions: number;
   conversionRate: number;
+  recruitsCount: number;
 }
 
 interface MonthlyData {
@@ -61,6 +62,7 @@ export default function ReportsPage() {
     totalLeads: 0,
     totalConversions: 0,
     conversionRate: 0,
+    recruitsCount: 0,
   });
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
 
@@ -88,6 +90,7 @@ export default function ReportsPage() {
           totalLeads: referrals.length,
           totalConversions: conversions.length,
           conversionRate: data.stats?.conversionRate || 0,
+          recruitsCount: data.recruits?.length || 0,
         });
 
         // Generate monthly breakdown
@@ -168,7 +171,7 @@ export default function ReportsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Reports</h1>
-          <p className="text-muted-foreground">Analyze your affiliate performance</p>
+          <p className="text-muted-foreground">Analyze your performance as an ambassador</p>
         </div>
         <div className="flex items-center gap-2">
           <Select value={period} onValueChange={setPeriod}>
@@ -190,7 +193,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Summary Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardContent className="p-5">
             <div className="flex items-center gap-3">
@@ -212,7 +215,7 @@ export default function ReportsPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats.totalLeads}</p>
-                <p className="text-xs text-muted-foreground">Total Leads</p>
+                <p className="text-xs text-muted-foreground">Business Partners Referred</p>
               </div>
             </div>
           </CardContent>
@@ -239,6 +242,19 @@ export default function ReportsPage() {
               <div>
                 <p className="text-2xl font-bold">{stats.conversionRate.toFixed(1)}%</p>
                 <p className="text-xs text-muted-foreground">Conversion Rate</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10">
+                <Users className="h-4 w-4 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{stats.recruitsCount}</p>
+                <p className="text-xs text-muted-foreground">Ambassador Recruits</p>
               </div>
             </div>
           </CardContent>
