@@ -49,7 +49,7 @@ export default function SettingsPage() {
     company: '',
     email: '',
     country: 'USA',
-    paymentMethod: 'PayPal',
+    paymentMethod: 'Stripe',
     paymentEmail: '',
   });
 
@@ -264,7 +264,6 @@ export default function SettingsPage() {
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="PayPal">PayPal</SelectItem>
                   <SelectItem value="Stripe">Stripe</SelectItem>
                 </SelectContent>
               </Select>

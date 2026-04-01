@@ -207,7 +207,7 @@ export default function PayoutsPage() {
           <div>
             <p className="text-sm font-medium text-blue-900">Payout Schedule</p>
             <p className="text-sm text-blue-700">
-              Payouts are processed on the 1st of each month for the previous month&apos;s earnings. Minimum payout threshold is {formatCurrency(minPayoutCents)}.
+              You are paid on the 1st of each month after a 15-day refund hold period. Minimum payout threshold is $1.00.
             </p>
           </div>
         </CardContent>

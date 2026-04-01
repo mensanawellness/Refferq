@@ -305,7 +305,7 @@ export default function AffiliateDashboard() {
           ) : (
             <>
               <div className="space-y-2">
-                <Label>Ambassador Recruiting Link</Label>
+                <Label>Ambassador Recruiting Link <span className="font-normal text-muted-foreground">(you earn 5% of their referral commission)</span></Label>
                 <div className="flex gap-2">
                   <Input readOnly value={ambassadorLink} className="font-mono text-sm" />
                   <Button
@@ -318,7 +318,7 @@ export default function AffiliateDashboard() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Business Partner Referral Link</Label>
+                <Label>Business Partner Referral Link <span className="font-normal text-muted-foreground">(you earn 20% commission)</span></Label>
                 <div className="flex gap-2">
                   <Input readOnly value={bdLink} className="font-mono text-sm" />
                   <Button
