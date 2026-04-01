@@ -49,7 +49,7 @@ export default function SettingsPage() {
     company: '',
     email: '',
     country: 'USA',
-    paymentMethod: 'Stripe',
+    paymentMethod: 'Zelle',
     paymentEmail: '',
   });
 
@@ -264,16 +264,19 @@ export default function SettingsPage() {
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Stripe">Stripe</SelectItem>
+                  <SelectItem value="Zelle">Zelle</SelectItem>
+                  <SelectItem value="Venmo">Venmo</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Payment Email / Account</Label>
+              <Label>
+                {settingsForm.paymentMethod === 'Venmo' ? 'Venmo Username' : 'Zelle Email or Phone Number'}
+              </Label>
               <Input
                 value={settingsForm.paymentEmail}
                 onChange={(e) => setSettingsForm({ ...settingsForm, paymentEmail: e.target.value })}
-                placeholder="payment@example.com"
+                placeholder={settingsForm.paymentMethod === 'Venmo' ? '@username' : 'email@example.com or (555) 555-5555'}
               />
             </div>
           </div>
@@ -283,7 +286,7 @@ export default function SettingsPage() {
           <Alert>
             <Shield className="h-4 w-4" />
             <AlertDescription>
-              Your payment information is encrypted and stored securely. We will never share your details with third parties.
+              Your payment information is stored securely. You will be paid via your selected method on the 1st of each month after the 15-day refund hold period.
             </AlertDescription>
           </Alert>
         </CardContent>
