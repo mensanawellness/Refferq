@@ -78,12 +78,16 @@ const AVAILABLE_VARIABLES = [
 ];
 
 const typeColors: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
-  WELCOME: 'default',
-  OTP: 'secondary',
-  APPROVAL: 'default',
-  REJECTION: 'destructive',
-  PAYOUT: 'outline',
-  NOTIFICATION: 'secondary',
+  WELCOME_EMAIL: 'default',
+  FIRST_REFERRAL: 'secondary',
+  NEW_REFERRAL: 'secondary',
+  PARTNER_PAID: 'default',
+  PARTNER_INVITATION: 'outline',
+  PARTNER_APPROVAL: 'default',
+  PARTNER_DECLINED: 'destructive',
+  COMMISSION_APPROVED: 'default',
+  PAYOUT_GENERATED: 'outline',
+  REFERRAL_CONVERTED: 'secondary',
 };
 
 export default function EmailsPage() {
@@ -109,9 +113,7 @@ export default function EmailsPage() {
     try {
       const res = await fetch('/api/admin/emails');
       const data = await res.json();
-      if (data.success) {
-        setTemplates(data.templates || []);
-      }
+      setTemplates(data.templates || []);
     } catch (error) {
       console.error('Failed to fetch templates:', error);
     } finally {
@@ -137,10 +139,8 @@ export default function EmailsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this email template?')) return;
     try {
-      await fetch('/api/admin/emails', {
+      await fetch(`/api/admin/emails?id=${id}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
       });
       setTemplates((prev) => prev.filter((t) => t.id !== id));
     } catch (error) {
@@ -288,12 +288,16 @@ export default function EmailsPage() {
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="WELCOME">Welcome</SelectItem>
-                    <SelectItem value="OTP">OTP</SelectItem>
-                    <SelectItem value="APPROVAL">Approval</SelectItem>
-                    <SelectItem value="REJECTION">Rejection</SelectItem>
-                    <SelectItem value="PAYOUT">Payout</SelectItem>
-                    <SelectItem value="NOTIFICATION">Notification</SelectItem>
+                    <SelectItem value="WELCOME_EMAIL">Welcome Email</SelectItem>
+                    <SelectItem value="FIRST_REFERRAL">First Referral</SelectItem>
+                    <SelectItem value="NEW_REFERRAL">New Referral</SelectItem>
+                    <SelectItem value="PARTNER_PAID">Partner Paid</SelectItem>
+                    <SelectItem value="PARTNER_INVITATION">Partner Invitation</SelectItem>
+                    <SelectItem value="PARTNER_APPROVAL">Partner Approval</SelectItem>
+                    <SelectItem value="PARTNER_DECLINED">Partner Declined</SelectItem>
+                    <SelectItem value="COMMISSION_APPROVED">Commission Approved</SelectItem>
+                    <SelectItem value="PAYOUT_GENERATED">Payout Generated</SelectItem>
+                    <SelectItem value="REFERRAL_CONVERTED">Referral Converted</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
