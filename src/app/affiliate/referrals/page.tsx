@@ -5,9 +5,6 @@ import { useAuth } from '@/hooks/useAuth';
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -73,7 +70,6 @@ export default function ReferralsPage() {
   const [submitForm, setSubmitForm] = useState({
     leadName: '',
     leadEmail: '',
-    estimatedValue: '0',
   });
 
   useEffect(() => {
@@ -93,7 +89,7 @@ export default function ReferralsPage() {
     }
   };
 
-  const handleSubmitLead = async (e: React.FormEvent) => {
+  const handleSubmitBusinessPartner = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitLoading(true);
     try {
@@ -103,20 +99,19 @@ export default function ReferralsPage() {
         body: JSON.stringify({
           lead_name: submitForm.leadName,
           lead_email: submitForm.leadEmail,
-          estimated_value: submitForm.estimatedValue,
         }),
       });
       const data = await res.json();
       if (data.success) {
-        showNotification('success', 'Lead submitted successfully!');
+        showNotification('success', 'Business partner submitted successfully!');
         setShowSubmitModal(false);
-        setSubmitForm({ leadName: '', leadEmail: '', estimatedValue: '0' });
+        setSubmitForm({ leadName: '', leadEmail: '' });
         fetchReferrals();
       } else {
-        showNotification('error', data.error || 'Failed to submit lead');
+        showNotification('error', data.error || 'Failed to submit business partner');
       }
     } catch (_e) {
-      showNotification('error', 'An error occurred while submitting lead');
+      showNotification('error', 'An error occurred while submitting business partner');
     } finally {
       setSubmitLoading(false);
     }
@@ -128,7 +123,7 @@ export default function ReferralsPage() {
   };
 
   const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+    new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
   const getStatusBadge = (status: string) => {
     const map: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ElementType }> = {
@@ -162,13 +157,12 @@ export default function ReferralsPage() {
   };
 
   const exportCSV = () => {
-    const headers = ['Name', 'Email', 'Company', 'Status', 'Value', 'Date'];
+    const headers = ['Name', 'Email', 'Company', 'Status', 'Date'];
     const rows = filteredReferrals.map((r) => [
       r.leadName,
       r.leadEmail,
       r.company || '',
       r.status,
-      (Number(r.estimatedValue) || 0).toFixed(2),
       formatDate(r.createdAt),
     ]);
     const csv = [headers, ...rows].map((row) => row.join(',')).join('\n');
@@ -205,11 +199,11 @@ export default function ReferralsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Referrals</h1>
-          <p className="text-muted-foreground">Track and manage your referral submissions</p>
+          <p className="text-muted-foreground">Track and manage your business partner submissions</p>
         </div>
         <Button onClick={() => setShowSubmitModal(true)} className="gap-1.5">
           <Plus className="h-4 w-4" />
-          Submit Lead
+          Submit Business Partner
         </Button>
       </div>
 
@@ -278,22 +272,21 @@ export default function ReferralsPage() {
               <Users className="h-12 w-12 text-muted-foreground/40 mb-3" />
               <p className="font-medium">No referrals found</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                {referrals.length === 0 ? 'Start submitting leads to earn commissions' : 'Try adjusting your filters'}
+                {referrals.length === 0 ? 'Start submitting business partners to earn commissions' : 'Try adjusting your filters'}
               </p>
               {referrals.length === 0 && (
-                <Button className="mt-4" onClick={() => setShowSubmitModal(true)}>Submit your first lead</Button>
+                <Button className="mt-4" onClick={() => setShowSubmitModal(true)}>Submit your first business partner</Button>
               )}
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Lead Name</TableHead>
+                  <TableHead>Business Partner Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Company</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Est. Value</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -304,9 +297,6 @@ export default function ReferralsPage() {
                     <TableCell className="text-muted-foreground">{ref.company || '\u2014'}</TableCell>
                     <TableCell>{getStatusBadge(ref.status)}</TableCell>
                     <TableCell className="text-muted-foreground text-sm">{formatDate(ref.createdAt)}</TableCell>
-                    <TableCell className="text-right font-semibold">
-                      {`\u20B9${(Number(ref.estimatedValue) || 0).toFixed(2)}`}
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -315,18 +305,18 @@ export default function ReferralsPage() {
         </CardContent>
       </Card>
 
-      {/* Submit Lead Modal */}
+      {/* Submit Business Partner Modal */}
       <Dialog open={showSubmitModal} onOpenChange={setShowSubmitModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Submit Lead</DialogTitle>
+            <DialogTitle>Submit Business Partner</DialogTitle>
             <DialogDescription>
-              Enter the details below to submit a lead.
+              Enter the details below to submit a business partner.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmitLead} className="space-y-4">
+          <form onSubmit={handleSubmitBusinessPartner} className="space-y-4">
             <div className="space-y-2">
-              <Label>Lead&apos;s Name *</Label>
+              <Label>Business Partner&apos;s Name *</Label>
               <Input
                 required
                 value={submitForm.leadName}
@@ -344,22 +334,11 @@ export default function ReferralsPage() {
                 placeholder="email@example.com"
               />
             </div>
-            <div className="space-y-2">
-              <Label>Estimated Deal Size ($) *</Label>
-              <Input
-                type="number"
-                required
-                value={submitForm.estimatedValue}
-                onChange={(e) => setSubmitForm({ ...submitForm, estimatedValue: e.target.value })}
-                placeholder="0"
-              />
-              <p className="text-xs text-muted-foreground">Type 0 if unsure</p>
-            </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setShowSubmitModal(false)}>Cancel</Button>
               <Button type="submit" disabled={submitLoading}>
                 {submitLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Submit Lead
+                Submit Business Partner
               </Button>
             </DialogFooter>
           </form>

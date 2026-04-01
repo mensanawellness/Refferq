@@ -51,6 +51,14 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' }
     });
 
+    const recruits = await prisma.affiliate.findMany({
+      where: { referredByAffiliateId: affiliate.id },
+      select: { id: true, referralCode: true, createdAt: true }
+    });
+
+    const programSettings = await prisma.programSettings.findFirst();
+    const minPayoutCents = programSettings?.minPayoutCents ?? 5000;
+
     // Calculate stats
     // Available earnings = COMPLETED (PAID) + APPROVED but not yet paid
     const availableEarnings = commissions
@@ -113,6 +121,8 @@ export async function GET(request: NextRequest) {
       referrals: mappedReferrals,
       conversions,
       commissions,
+      recruits,
+      minPayoutCents,
       currencySymbol,
     });
   } catch (error) {

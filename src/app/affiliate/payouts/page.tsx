@@ -21,7 +21,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  IndianRupee,
   Clock,
   CheckCircle2,
   Ban,
@@ -47,6 +46,7 @@ export default function PayoutsPage() {
   const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState(0);
   const [currencySymbol, setCurrencySymbol] = useState('$');
+  const [minPayoutCents, setMinPayoutCents] = useState(5000);
 
   useEffect(() => {
     if (!authLoading && user) fetchPayouts();
@@ -65,6 +65,7 @@ export default function PayoutsPage() {
       if (profileData.success) {
         setBalance(profileData.affiliate?.balanceCents || 0);
         setCurrencySymbol(profileData.currencySymbol || '$');
+        setMinPayoutCents(profileData.minPayoutCents ?? 5000);
       }
     } catch (error) {
       console.error('Failed to fetch payouts:', error);
@@ -74,7 +75,7 @@ export default function PayoutsPage() {
   };
 
   const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+    new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
   const formatCurrency = (cents: number) =>
     `${currencySymbol}${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -206,7 +207,7 @@ export default function PayoutsPage() {
           <div>
             <p className="text-sm font-medium text-blue-900">Payout Schedule</p>
             <p className="text-sm text-blue-700">
-              Payouts are processed on the 1st of each month for the previous month&apos;s earnings. Minimum payout threshold is {currencySymbol}1,000.
+              Payouts are processed on the 1st of each month for the previous month&apos;s earnings. Minimum payout threshold is {formatCurrency(minPayoutCents)}.
             </p>
           </div>
         </CardContent>

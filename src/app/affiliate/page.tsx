@@ -32,7 +32,6 @@ import {
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
-  IndianRupee,
   MousePointerClick,
   Target,
   Users,
@@ -49,20 +48,21 @@ import {
   ArrowRight,
   Banknote,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface AffiliateStats {
   totalEarnings: number;
   pendingEarnings: number;
   totalClicks: number;
   totalLeads: number;
-  totalReferredCustomers: number;
   totalConversions: number;
   conversionRate: number;
-  referralLink: string;
   referralCode: string;
   currencySymbol: string;
   nextMaturesAt: string | null;
+  bdConversionsCount: number;
+  tierTwoEarnings: number;
+  recruitsCount: number;
 }
 
 interface Referral {
@@ -82,15 +82,13 @@ export default function AffiliateDashboard() {
   const [currencySymbol, setCurrencySymbol] = useState('$');
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-  const [copied, setCopied] = useState<'link' | 'code' | null>(null);
+  const [copied, setCopied] = useState<'ambassador' | 'bd' | null>(null);
 
-  // Referral form state
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitForm, setSubmitForm] = useState({
     leadName: '',
     leadEmail: '',
-    estimatedValue: '0',
   });
 
   useEffect(() => {
@@ -106,18 +104,24 @@ export default function AffiliateDashboard() {
       const data = await response.json();
 
       if (data.success) {
+        const commissions = data.commissions || [];
+        const tierTwoEarnings = commissions
+          .filter((c: any) => c.tier === 'TIER_TWO' && (c.status === 'PAID' || c.status === 'APPROVED'))
+          .reduce((sum: number, c: any) => sum + c.amountCents, 0);
+
         setStats({
           totalEarnings: data.affiliate?.balanceCents || 0,
           pendingEarnings: data.stats?.pendingEarnings || 0,
           totalClicks: data.stats?.totalClicks || 0,
           totalLeads: data.referrals?.length || 0,
-          totalReferredCustomers: data.referrals?.filter((r: any) => r.status === 'APPROVED').length || 0,
           totalConversions: data.stats?.totalConversions || 0,
           conversionRate: data.stats?.conversionRate || 0,
-          referralLink: `${window.location.origin}/r/${data.affiliate?.referralCode}`,
           referralCode: data.affiliate?.referralCode || '',
           currencySymbol: data.currencySymbol || '$',
           nextMaturesAt: data.stats?.nextMaturesAt || null,
+          bdConversionsCount: data.conversions?.length || 0,
+          tierTwoEarnings,
+          recruitsCount: data.recruits?.length || 0,
         });
         setReferrals(data.referrals || []);
         setCurrencySymbol(data.currencySymbol || '$');
@@ -129,7 +133,7 @@ export default function AffiliateDashboard() {
     }
   };
 
-  const handleSubmitLead = async (e: React.FormEvent) => {
+  const handleSubmitBusinessPartner = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitLoading(true);
 
@@ -140,22 +144,21 @@ export default function AffiliateDashboard() {
         body: JSON.stringify({
           lead_name: submitForm.leadName,
           lead_email: submitForm.leadEmail,
-          estimated_value: submitForm.estimatedValue,
         }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        showNotification('success', 'Lead submitted successfully! Waiting for admin approval.');
+        showNotification('success', 'Business partner submitted successfully! Waiting for admin approval.');
         setShowSubmitModal(false);
-        setSubmitForm({ leadName: '', leadEmail: '', estimatedValue: '0' });
+        setSubmitForm({ leadName: '', leadEmail: '' });
         loadDashboardData();
       } else {
-        showNotification('error', data.error || 'Failed to submit lead');
+        showNotification('error', data.error || 'Failed to submit business partner');
       }
     } catch (_e) {
-      showNotification('error', 'An error occurred while submitting lead');
+      showNotification('error', 'An error occurred while submitting business partner');
     } finally {
       setSubmitLoading(false);
     }
@@ -180,17 +183,17 @@ export default function AffiliateDashboard() {
     setTimeout(() => setNotification(null), 5000);
   };
 
-  const copyToClipboard = (text: string, type: 'link' | 'code') => {
+  const copyToClipboard = (text: string, type: 'ambassador' | 'bd') => {
     navigator.clipboard.writeText(text);
     setCopied(type);
     setTimeout(() => setCopied(null), 2000);
   };
 
   const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+    new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
   const formatCurrency = (cents: number) =>
-    `${currencySymbol}${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const getStatusBadge = (status: string) => {
     const map: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ElementType }> = {
@@ -215,6 +218,9 @@ export default function AffiliateDashboard() {
     return <DashboardSkeleton />;
   }
 
+  const ambassadorLink = `https://refferq-chi.vercel.app/register?ref=${stats?.referralCode || ''}`;
+  const bdLink = `https://thesoranetwork.com?ref=${stats?.referralCode || ''}`;
+
   return (
     <div className="space-y-6">
       {/* Notification */}
@@ -228,32 +234,6 @@ export default function AffiliateDashboard() {
           <AlertDescription>{notification.message}</AlertDescription>
         </Alert>
       )}
-
-      {/* Commission Banner */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        <Card className="bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 text-white border-0 shadow-lg overflow-hidden relative group">
-          <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl -translate-x-full group-hover:translate-x-full" />
-          <CardContent className="flex items-center justify-between p-6 relative z-10">
-            <div className="flex items-center gap-5">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md shadow-inner">
-                <span className="text-2xl font-bold">{currencySymbol}</span>
-              </div>
-              <div>
-                <p className="text-sm text-white/90 font-medium tracking-wide">Earn 20% commission on all paid customers</p>
-                <p className="text-xl font-bold mt-1 tracking-tight">Start referring today and grow your wealth!</p>
-              </div>
-            </div>
-            <Button variant="secondary" onClick={() => setShowSubmitModal(true)} className="gap-2 hidden sm:flex bg-white text-emerald-700 hover:bg-emerald-50 border-0 shadow-md transform transition hover:scale-105 active:scale-95">
-              <Plus className="h-4 w-4" />
-              Submit Lead
-            </Button>
-          </CardContent>
-        </Card>
-      </motion.div>
 
       {/* Stats */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
@@ -273,26 +253,26 @@ export default function AffiliateDashboard() {
             color: 'text-amber-600',
             bg: 'bg-amber-500/10',
             description: stats?.nextMaturesAt
-              ? `Next maturity: ${new Date(stats.nextMaturesAt).toLocaleDateString()}`
+              ? `Next maturity: ${new Date(stats.nextMaturesAt).toLocaleDateString('en-US')}`
               : 'Held for refund period'
           },
           { label: 'Total Clicks', value: stats?.totalClicks || 0, icon: MousePointerClick, color: 'text-blue-600', bg: 'bg-blue-500/10' },
-          { label: 'Total Leads', value: stats?.totalLeads || 0, icon: Target, color: 'text-rose-600', bg: 'bg-rose-500/10' },
+          { label: 'Total Business Partners', value: stats?.totalLeads || 0, icon: Target, color: 'text-rose-600', bg: 'bg-rose-500/10' },
           { label: 'Conv. Rate', value: `${stats?.conversionRate?.toFixed(1) || '0.0'}%`, icon: TrendingUp, color: 'text-violet-600', bg: 'bg-violet-500/10' },
         ].map((stat, i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 + i * 0.1 }}
+            transition={{ delay: 0.1 + i * 0.1 }}
             whileHover={{ y: -5 }}
           >
             <Card className="glass-card border-0">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${stat.bg} backdrop-blur-sm transition-transform group-hover:scale-110`}>
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${stat.bg} backdrop-blur-sm`}>
                     {stat.icon === Banknote ? (
-                      <span className={`text-lg font-bold ${stat.color}`}>{currencySymbol}</span>
+                      <span className={`text-lg font-bold ${stat.color}`}>$</span>
                     ) : (
                       <stat.icon className={`h-5 w-5 ${stat.color}`} />
                     )}
@@ -310,6 +290,29 @@ export default function AffiliateDashboard() {
               </CardContent>
             </Card>
           </motion.div>
+        ))}
+      </div>
+
+      {/* BD & Network Activity */}
+      <div className="grid gap-6 sm:grid-cols-3">
+        {[
+          { label: 'BD Conversions', value: stats?.bdConversionsCount || 0, icon: Target, color: 'text-blue-600', bg: 'bg-blue-500/10' },
+          { label: 'Tier-Two Earnings', value: formatCurrency(stats?.tierTwoEarnings || 0), icon: TrendingUp, color: 'text-violet-600', bg: 'bg-violet-500/10' },
+          { label: 'Recruits', value: stats?.recruitsCount || 0, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-500/10' },
+        ].map((stat, i) => (
+          <Card key={i} className="border-0 glass-card">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${stat.bg}`}>
+                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                </div>
+                <div>
+                  <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">{stat.label}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
@@ -338,28 +341,28 @@ export default function AffiliateDashboard() {
           ) : (
             <>
               <div className="space-y-2">
-                <Label>Referral Link</Label>
+                <Label>Ambassador Recruiting Link</Label>
                 <div className="flex gap-2">
-                  <Input readOnly value={stats?.referralLink || ''} className="font-mono text-sm" />
+                  <Input readOnly value={ambassadorLink} className="font-mono text-sm" />
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => copyToClipboard(stats?.referralLink || '', 'link')}
+                    onClick={() => copyToClipboard(ambassadorLink, 'ambassador')}
                   >
-                    {copied === 'link' ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                    {copied === 'ambassador' ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Referral Code</Label>
+                <Label>Business Partner Referral Link</Label>
                 <div className="flex gap-2">
-                  <Input readOnly value={stats?.referralCode || ''} className="font-mono text-sm" />
+                  <Input readOnly value={bdLink} className="font-mono text-sm" />
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => copyToClipboard(stats?.referralCode || '', 'code')}
+                    onClick={() => copyToClipboard(bdLink, 'bd')}
                   >
-                    {copied === 'code' ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                    {copied === 'bd' ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
@@ -372,8 +375,8 @@ export default function AffiliateDashboard() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-base">Recent Referrals</CardTitle>
-            <CardDescription>Latest 5 referrals</CardDescription>
+            <CardTitle className="text-base">Recent Business Partners</CardTitle>
+            <CardDescription>Latest 5 submissions</CardDescription>
           </div>
           {referrals.length > 5 && (
             <Button variant="ghost" size="sm" asChild>
@@ -385,7 +388,7 @@ export default function AffiliateDashboard() {
         </CardHeader>
         <CardContent className="p-0">
           {referrals.length === 0 ? (
-            <EmptyState icon={Users} message="No referrals yet" />
+            <EmptyState icon={Users} message="No submissions yet" />
           ) : (
             <Table>
               <TableHeader>
@@ -394,7 +397,6 @@ export default function AffiliateDashboard() {
                   <TableHead>Email</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Value</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -404,9 +406,6 @@ export default function AffiliateDashboard() {
                     <TableCell className="text-muted-foreground">{ref.leadEmail}</TableCell>
                     <TableCell>{getStatusBadge(ref.status)}</TableCell>
                     <TableCell className="text-muted-foreground text-sm">{formatDate(ref.createdAt)}</TableCell>
-                    <TableCell className="text-right font-semibold">
-                      {`${currencySymbol}${(Number(ref.estimatedValue) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -449,19 +448,19 @@ export default function AffiliateDashboard() {
         </Card>
       </div>
 
-      {/* Submit Lead Modal */}
+      {/* Submit Business Partner Modal */}
       <Dialog open={showSubmitModal} onOpenChange={setShowSubmitModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Submit Lead</DialogTitle>
+            <DialogTitle>Submit Business Partner</DialogTitle>
             <DialogDescription>
-              Enter the details below to submit a lead. Ensure all information is accurate for proper tracking.
+              Enter the details below to submit a business partner. Ensure all information is accurate for proper tracking.
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmitLead} className="space-y-4">
+          <form onSubmit={handleSubmitBusinessPartner} className="space-y-4">
             <div className="space-y-2">
-              <Label>Lead&apos;s Name *</Label>
+              <Label>Business Partner&apos;s Name *</Label>
               <Input
                 required
                 value={submitForm.leadName}
@@ -479,17 +478,6 @@ export default function AffiliateDashboard() {
                 placeholder="email@example.com"
               />
             </div>
-            <div className="space-y-2">
-              <Label>Estimated Deal Size ({currencySymbol}) *</Label>
-              <Input
-                type="number"
-                required
-                value={submitForm.estimatedValue}
-                onChange={(e) => setSubmitForm({ ...submitForm, estimatedValue: e.target.value })}
-                placeholder="0"
-              />
-              <p className="text-xs text-muted-foreground">Type 0 if unsure</p>
-            </div>
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setShowSubmitModal(false)}>
@@ -497,7 +485,7 @@ export default function AffiliateDashboard() {
               </Button>
               <Button type="submit" disabled={submitLoading}>
                 {submitLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Submit Lead
+                Submit Business Partner
               </Button>
             </DialogFooter>
           </form>
@@ -519,10 +507,8 @@ function EmptyState({ icon: Icon, message }: { icon: React.ElementType; message:
 function DashboardSkeleton() {
   return (
     <div className="space-y-6">
-      <Skeleton className="h-20 w-full rounded-xl" />
-      <Skeleton className="h-10 w-full max-w-md" />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        {Array.from({ length: 5 }).map((_, i) => (
           <Card key={i}>
             <CardContent className="p-5">
               <div className="flex items-center gap-3">

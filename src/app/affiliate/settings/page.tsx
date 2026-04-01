@@ -48,7 +48,7 @@ export default function SettingsPage() {
     name: '',
     company: '',
     email: '',
-    country: 'India',
+    country: 'USA',
     paymentMethod: 'PayPal',
     paymentEmail: '',
   });
@@ -69,7 +69,7 @@ export default function SettingsPage() {
           name: data.user?.name || user?.name || '',
           company: pd.company || '',
           email: data.user?.email || user?.email || '',
-          country: pd.country || 'India',
+          country: pd.country || 'USA',
           paymentMethod: pd.paymentMethod || 'PayPal',
           paymentEmail: pd.paymentEmail || data.user?.email || '',
         });
@@ -265,11 +265,7 @@ export default function SettingsPage() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="PayPal">PayPal</SelectItem>
-                  <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
                   <SelectItem value="Stripe">Stripe</SelectItem>
-                  <SelectItem value="Wise">Wise</SelectItem>
-                  <SelectItem value="Wire Transfer">Wire Transfer</SelectItem>
-                  <SelectItem value="UPI">UPI</SelectItem>
                 </SelectContent>
               </Select>
             </div>

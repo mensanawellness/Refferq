@@ -38,7 +38,6 @@ import {
   Settings,
   LogOut,
   ChevronsUpDown,
-  Bell,
 } from 'lucide-react';
 
 interface BrandSettings {
@@ -248,9 +247,6 @@ export default function AffiliateLayout({ children }: { children: React.ReactNod
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-4 w-4" />
-              </Button>
             </div>
           </div>
         </header>

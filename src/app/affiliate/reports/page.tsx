@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/table';
 import {
   BarChart3,
-  IndianRupee,
+  DollarSign,
   TrendingUp,
   Target,
   Users,
@@ -98,7 +98,7 @@ export default function ReportsPage() {
           d.setMonth(d.getMonth() - i);
           const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
           months[key] = {
-            month: d.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }),
+            month: d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
             referrals: 0,
             conversions: 0,
             earnings: 0,
@@ -135,7 +135,7 @@ export default function ReportsPage() {
   };
 
   const formatCurrency = (cents: number) =>
-    `\u20B9${(cents / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const exportCSV = () => {
     const headers = ['Month', 'Referrals', 'Conversions', 'Earnings ($)'];
@@ -195,7 +195,7 @@ export default function ReportsPage() {
           <CardContent className="p-5">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10">
-                <IndianRupee className="h-4 w-4 text-emerald-600" />
+                <DollarSign className="h-4 w-4 text-emerald-600" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-emerald-600">{formatCurrency(stats.totalEarnings)}</p>
