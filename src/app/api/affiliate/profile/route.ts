@@ -53,7 +53,12 @@ export async function GET(request: NextRequest) {
 
     const recruits = await prisma.affiliate.findMany({
       where: { referredByAffiliateId: affiliate.id },
-      select: { id: true, referralCode: true, createdAt: true }
+      select: {
+        id: true,
+        referralCode: true,
+        createdAt: true,
+        user: { select: { id: true, name: true, email: true } }
+      }
     });
 
     const programSettings = await prisma.programSettings.findFirst();
@@ -68,9 +73,52 @@ export async function GET(request: NextRequest) {
     const pendingCommissionsList = commissions.filter(c => c.status === 'PENDING');
     const pendingEarningsCents = pendingCommissionsList.reduce((sum, c) => sum + c.amountCents, 0);
 
+    const tierOneCommissions = commissions.filter(c => c.tier === 'TIER_ONE');
+    const tierTwoCommissions = commissions.filter(c => c.tier === 'TIER_TWO');
+
     const totalCommissions = commissions.length;
     const pendingCommissionsCount = pendingCommissionsList.length;
     const totalConversions = conversions.length;
+
+    // BD-webhook conversions only
+    const bdConversions = conversions.filter(c => {
+      const meta = c.eventMetadata as any;
+      return meta?.source === 'bd-webhook';
+    });
+
+    // Per-recruit stats: fetch all conversions belonging to recruits,
+    // then match against tier-two commissions this affiliate earned
+    const recruitIds = recruits.map(r => r.id);
+    let recruitConversionMap = new Map<string, Set<string>>();
+    if (recruitIds.length > 0) {
+      const recruitConversions = await prisma.conversion.findMany({
+        where: { affiliateId: { in: recruitIds } },
+        select: { id: true, affiliateId: true }
+      });
+      for (const conv of recruitConversions) {
+        if (!recruitConversionMap.has(conv.affiliateId)) {
+          recruitConversionMap.set(conv.affiliateId, new Set());
+        }
+        recruitConversionMap.get(conv.affiliateId)!.add(conv.id);
+      }
+    }
+
+    const recruitsWithStats = recruits.map(recruit => {
+      const conversionIds = recruitConversionMap.get(recruit.id) || new Set<string>();
+      const conversionCount = conversionIds.size;
+      const tierTwoEarned = tierTwoCommissions
+        .filter(c => conversionIds.has(c.conversionId))
+        .reduce((sum, c) => sum + c.amountCents, 0);
+      return {
+        id: recruit.id,
+        referralCode: recruit.referralCode,
+        createdAt: recruit.createdAt,
+        name: recruit.user.name,
+        email: recruit.user.email,
+        conversionCount,
+        tierTwoEarned,
+      };
+    });
     const totalClicks = referrals.reduce((sum, r) => {
       const metadata = r.metadata as any;
       return sum + (metadata?.clicks || 0);
@@ -90,6 +138,7 @@ export async function GET(request: NextRequest) {
       totalCommissions,
       pendingCommissions: pendingCommissionsCount,
       totalConversions,
+      bdConversionsCount: bdConversions.length,
       totalClicks,
       conversionRate
     };
@@ -120,8 +169,11 @@ export async function GET(request: NextRequest) {
       stats,
       referrals: mappedReferrals,
       conversions,
+      bdConversions,
       commissions,
-      recruits,
+      tierOneCommissions,
+      tierTwoCommissions,
+      recruits: recruitsWithStats,
       minPayoutCents,
       currencySymbol,
     });

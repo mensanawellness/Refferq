@@ -75,10 +75,20 @@ interface Referral {
   createdAt: string;
 }
 
+interface Recruit {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+  conversionCount: number;
+  tierTwoEarned: number;
+}
+
 export default function AffiliateDashboard() {
   const { user, loading: authLoading } = useAuth();
   const [stats, setStats] = useState<AffiliateStats | null>(null);
   const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [recruits, setRecruits] = useState<Recruit[]>([]);
   const [currencySymbol, setCurrencySymbol] = useState('$');
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -119,11 +129,12 @@ export default function AffiliateDashboard() {
           referralCode: data.affiliate?.referralCode || '',
           currencySymbol: data.currencySymbol || '$',
           nextMaturesAt: data.stats?.nextMaturesAt || null,
-          bdConversionsCount: data.conversions?.length || 0,
+          bdConversionsCount: data.stats?.bdConversionsCount ?? data.bdConversions?.length ?? 0,
           tierTwoEarnings,
           recruitsCount: data.recruits?.length || 0,
         });
         setReferrals(data.referrals || []);
+        setRecruits(data.recruits || []);
         setCurrencySymbol(data.currencySymbol || '$');
       }
     } catch (error) {
@@ -406,6 +417,42 @@ export default function AffiliateDashboard() {
                     <TableCell className="text-muted-foreground">{ref.leadEmail}</TableCell>
                     <TableCell>{getStatusBadge(ref.status)}</TableCell>
                     <TableCell className="text-muted-foreground text-sm">{formatDate(ref.createdAt)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Recruited Ambassadors */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Recruited Ambassadors</CardTitle>
+          <CardDescription>Ambassadors you have recruited and their performance</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          {recruits.length === 0 ? (
+            <EmptyState icon={Users} message="No recruited ambassadors yet" />
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Joined</TableHead>
+                  <TableHead className="text-right">Conversions</TableHead>
+                  <TableHead className="text-right">Tier-Two Earned</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recruits.map((recruit) => (
+                  <TableRow key={recruit.id}>
+                    <TableCell className="font-medium">{recruit.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{recruit.email}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{formatDate(recruit.createdAt)}</TableCell>
+                    <TableCell className="text-right">{recruit.conversionCount}</TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(recruit.tierTwoEarned)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
